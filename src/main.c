@@ -6,16 +6,21 @@
 #include <strings.h>
 #include <unistd.h>
 #include <errno.h>
+#include <pthread.h>
+#include <stdlib.h>
 
 #include "packet.h"
+#include "server.h"
 
 #define PORT 5087
 #define SA struct sockaddr
 
-void chat(int connfd)
+void* chat(void* args)
 {
     meta_t meta_data;
     char buffer[80];
+    thread_args* actual_args = args;
+    int connfd = actual_args->connfd;
 
     for(;;)
     {
@@ -31,14 +36,16 @@ void chat(int connfd)
 
 int main(int argc, char** argv)
 {
+    pthread_t* threads_id = (pthread_t*) malloc(sizeof(pthread_t));
+
     int sockfd, connfd, len;
+    int client_number = 0;
     struct sockaddr_in sockserve, cli;
 
     sockfd = socket(PF_INET, SOCK_STREAM, 0);
     if (sockfd == -1)
     {
         perror("socket()");
-        printf("Socket creation failed\n");
         return 1;
     }
     else
@@ -62,15 +69,22 @@ int main(int argc, char** argv)
 
     len = sizeof(cli);
 
-    connfd = accept(sockfd, (struct sockaddr*)&cli, (socklen_t *)&len);    
-    if(connfd < 0)
+    while(1)
     {
-        printf("accept failed\n");
-        return 1;
-    }
-    printf("New client connected : %d", connfd);
+        connfd = accept(sockfd, (struct sockaddr*)&cli, (socklen_t *)&len);    
+        if(connfd < 0)
+        {
+            printf("accept failed\n");
+            return 1;
+        }
+        printf("New client connected : %d\n", connfd);
 
-    chat(connfd);
+        ++client_number;
+        threads_id = (pthread_t*) realloc(threads_id, client_number * sizeof(pthread_t));
+        thread_args args = {.connfd = connfd};
+
+        pthread_create(&threads_id[client_number - 1], NULL, chat, &args);  
+    }
 
     close(sockfd);
     return 0;

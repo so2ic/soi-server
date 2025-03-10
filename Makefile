@@ -29,7 +29,7 @@ $(EXEC): $(OBJ)
 # Rule to compile .c files into .o files, ensuring correct directory creation
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 	@mkdir -p $(dir $@)
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) -c $< -o $@ -lpthread
 
 # Clean the build
 clean:

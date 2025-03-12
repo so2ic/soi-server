@@ -3,14 +3,14 @@
 
 typedef enum CARD_TYPE
 {
-    BASE, // equivalent of allies card in official doc
+    ALLIES,
     MERCENARIES,
     CHAMPION,
 } CARD_TYPE;
 
 typedef enum CARD_CLASS
 {
-    BASE, // for base decks
+    BASE_DECK, // for base decks
     ORDER,
     WRAETHE,
     UNDERGROWTH,

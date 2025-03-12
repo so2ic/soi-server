@@ -11,6 +11,7 @@
 
 #include "packet.h"
 #include "server.h"
+#include "json/parser.h"
 
 #define PORT 5087
 #define SA struct sockaddr
@@ -21,13 +22,20 @@ void* chat(void* args)
     char buffer[80];
     thread_args* actual_args = args;
     int connfd = actual_args->connfd;
+    room_t* room = actual_args->room;
 
+    printf("waiting for opponent\n");
+    while(room->count < 2);
+
+    int ennemy = room->player1 == connfd ? room->player2 : room->player1;
+    printf("ennemy found : %d\n", ennemy);
     for(;;)
     {
         recv(connfd, &buffer, sizeof(buffer), 0);
 
         printf("message from client : %s\n", buffer);
 
+        send(ennemy, &buffer, strlen(buffer) + 1, 0);
         char* msg = "Message get";
         send(connfd, msg, strlen(msg) + 1, 0);
         printf("Message sent");
@@ -36,10 +44,18 @@ void* chat(void* args)
 
 int main(int argc, char** argv)
 {
+    char* file_path = "/Users/vincentastolfi/git/soi/soi-server/src/card/cards.json";
+    json_to_cards(file_path);
+    // Code to start the server
+    // listen to socket and start threads
+    // uncomment after json parser is working 
+    /*
     pthread_t* threads_id = (pthread_t*) malloc(sizeof(pthread_t));
+    room_t* room = (room_t*) malloc(sizeof(room_t));
+    room->count = 0;
 
     int sockfd, connfd, len;
-    int client_number = 0;
+    int client_count = 0;
     struct sockaddr_in sockserve, cli;
 
     sockfd = socket(PF_INET, SOCK_STREAM, 0);
@@ -79,13 +95,22 @@ int main(int argc, char** argv)
         }
         printf("New client connected : %d\n", connfd);
 
-        ++client_number;
-        threads_id = (pthread_t*) realloc(threads_id, client_number * sizeof(pthread_t));
-        thread_args args = {.connfd = connfd};
+        // add new player to the room
+        if (room->count == 0)
+            room->player1 = connfd;
+        else
+            room->player2 = connfd;
+        room->count++;
 
-        pthread_create(&threads_id[client_number - 1], NULL, chat, &args);  
+        // create thread for new client
+        ++client_count;
+        threads_id = (pthread_t*) realloc(threads_id, client_count * sizeof(pthread_t));
+        thread_args args = {.connfd = connfd, .room = room};
+
+        pthread_create(&threads_id[client_count - 1], NULL, chat, &args);  
     }
 
     close(sockfd);
+    */
     return 0;
 }

@@ -13,7 +13,13 @@
 
 typedef struct 
 {
+    int player1, player2, count;
+} room_t;
+
+typedef struct 
+{
     int connfd;
+    room_t* room;
 } thread_args;
 
 #endif // SERVER_HPP

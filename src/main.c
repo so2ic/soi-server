@@ -45,7 +45,8 @@ void* chat(void* args)
 int main(int argc, char** argv)
 {
     char* file_path = "/Users/vincentastolfi/git/soi/soi-server/src/card/cards.json";
-    json_to_cards(file_path);
+    card_t* card;
+    json_to_cards(file_path, card);
     // Code to start the server
     // listen to socket and start threads
     // uncomment after json parser is working 

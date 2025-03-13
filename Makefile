@@ -24,12 +24,12 @@ all: $(EXEC)
 # Rule to link object files and create the final executable
 $(EXEC): $(OBJ)
 	@mkdir -p $(BIN_DIR)
-	$(CC) $(OBJ) -o $@
+	$(CC) $(OBJ) -o $@ -lpthread
 
 # Rule to compile .c files into .o files, ensuring correct directory creation
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 	@mkdir -p $(dir $@)
-	$(CC) $(CFLAGS) -c $< -o $@ -lpthread
+	$(CC) $(CFLAGS) -c $< -o $@
 
 # Clean the build
 clean:

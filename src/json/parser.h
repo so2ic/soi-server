@@ -8,6 +8,7 @@
 
 #include "../card.h"
 
+
 typedef struct
 {
     char value;
@@ -19,7 +20,8 @@ int m_index;
 char* m_buffer;
 char* m_content;
 
-optionnal_char_t peek();
+optionnal_char_t peek(int i);
 char consume();
 
+#define PEEK(...) peek(__VA_ARGS__ 0)
 #endif // PARSER_HPP

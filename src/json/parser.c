@@ -38,38 +38,45 @@ card_t* json_to_cards(const char* file_path, card_t* card)
 
     fclose(file);
 
-    while ((c = _peek()).has_value)
+    while((c = _peek()).has_value)
     {
         // Skip the first { at start
-        if (c.value == '{' && m_index == 0)
+        if(c.value == '{' && m_index == 0)
         {
-            consume();
+            _consume();
             continue;
         }
 
+        if(c.value == ' ' || c.value == '\n')
+        {
+            _consume();
+            continue; 
+        }
+
         // Start of the card name
-        if (c.value == '"')
-            consume();
+        if(c.value == '"')
+            _consume();
 
         int name_length = 0;
-        while ((c = _peek(name_length)).has_value)
+        while((c = _peek(name_length)).has_value)
         {
             // End of the card name
-            if (c.value == '"')
+            if(c.value == '"')
             {
-                consume();
                 break;
             }
             ++name_length;
         }
-
+        
         // Allocate m_buffer and copy name
-        m_buffer = calloc(name_length + 1, sizeof(char)); // +1 for null terminator
-        if (m_buffer)
+        m_buffer = _consume(name_length);
+
+        // to escape end card name '"' char
+        _consume();
+        if(!m_buffer)
         {
-            for (int i = 0; i < name_length; ++i)
-                m_buffer[i] = consume();
-            m_buffer[name_length] = '\0'; // Null-terminate the string
+           printf("ERROR"); 
+           break; // to handle properly
         }
 
         printf("%s\n", m_buffer);
@@ -92,13 +99,23 @@ card_t* json_to_cards(const char* file_path, card_t* card)
 
 optionnal_char_t peek(int i)
 {
-    if (m_index + i >= strlen(m_content)) // Use >= instead of >
+    if(m_index + i >= strlen(m_content)) // Use >= instead of >
         return (optionnal_char_t) {.has_value = 0};
     else
         return (optionnal_char_t) {.value = m_content[m_index + i], .has_value = 1};
 }
 
-char consume()
+char* consume(int i)
 {
-    return m_content[m_index++];
+    if(i == 0)
+        return "ERROR"; // to handle properly
+    char* s = malloc(i + 1);
+    for(int j = 0; j < i; ++j)
+    {
+        s[j] = m_content[m_index];
+        ++m_index;
+    }
+
+    s[i] = '\0';
+    return s;
 }

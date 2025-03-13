@@ -8,13 +8,11 @@
 
 #include "../card.h"
 
-// Struct to represent an optional character
 typedef struct {
     char value;
     int has_value;
 } optionnal_char_t;
 
-// Function declarations
 card_t* json_to_cards(const char* file_path, card_t* card);
 optionnal_char_t peek(int i);
 char* consume(int i);

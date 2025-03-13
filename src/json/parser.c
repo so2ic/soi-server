@@ -12,6 +12,7 @@ card_t* json_to_cards(const char* file_path, card_t* card)
     long length;
     optionnal_char_t c;
     m_index = 0;
+    size_t deck_size = 0;
 
     file = fopen(file_path, "rb");
     if (file == NULL)
@@ -47,31 +48,49 @@ card_t* json_to_cards(const char* file_path, card_t* card)
             continue;
         }
 
+        // skip the last {
+        if(c.value == '}' && m_index == strlen(m_content - 1))
+        {
+            _consume();
+           continue; 
+        }
+
         if(c.value == ' ' || c.value == '\n')
         {
             _consume();
             continue; 
         }
 
-        // Start of the card name
+        // Start of card creation
+        // Need improvement later on
+        if(c.value == '{')
+        {
+            deck_size++;
+            card = (card_t*) realloc(card, deck_size * sizeof(card_t));
+            strcpy(card[deck_size-1].name,  m_buffer);
+            free(m_buffer);
+            m_buffer = NULL;
+        }
+
+        // Start of the field
         if(c.value == '"')
             _consume();
 
-        int name_length = 0;
-        while((c = _peek(name_length)).has_value)
+        int field_length = 0;
+        while((c = _peek(field_length)).has_value)
         {
-            // End of the card name
+            // End of the field
             if(c.value == '"')
             {
                 break;
             }
-            ++name_length;
+            ++field_length;
         }
         
-        // Allocate m_buffer and copy name
-        m_buffer = _consume(name_length);
+        // Allocate m_buffer and copy field
+        m_buffer = _consume(field_length);
 
-        // to escape end card name '"' char
+        // to escape end of field
         _consume();
         if(!m_buffer)
         {
@@ -81,16 +100,12 @@ card_t* json_to_cards(const char* file_path, card_t* card)
 
         printf("%s\n", m_buffer);
 
-        // Free m_buffer to avoid memory leaks
         free(m_buffer);
         m_buffer = NULL;
-
-        break; // Remove this break to continue parsing
     }
 
     printf("File read\n");
 
-    // Free m_content to avoid memory leaks
     free(m_content);
     m_content = NULL;
 
@@ -99,7 +114,7 @@ card_t* json_to_cards(const char* file_path, card_t* card)
 
 optionnal_char_t peek(int i)
 {
-    if(m_index + i >= strlen(m_content)) // Use >= instead of >
+    if(m_index + i >= strlen(m_content))
         return (optionnal_char_t) {.has_value = 0};
     else
         return (optionnal_char_t) {.value = m_content[m_index + i], .has_value = 1};

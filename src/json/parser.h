@@ -5,6 +5,7 @@
 #include <string.h>
 #include <errno.h>
 #include <stdlib.h>
+#include <ctype.h>
 
 #include "../card.h"
 
@@ -13,7 +14,8 @@ typedef struct {
     int has_value;
 } optionnal_char_t;
 
-card_t* json_to_cards(const char* file_path, card_t* card);
+// output : int 0 on success, 1 on failure
+int json_to_cards(const char* file_path, card_t* card);
 optionnal_char_t peek(int i);
 char* consume(int i);
 

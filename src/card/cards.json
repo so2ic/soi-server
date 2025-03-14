@@ -1,14 +1,14 @@
 {
     "Cristal": {
         "id": 1,
-        "class": "base",
+        "class": "allies",
         "type": "base",
         "effects": [
             {
                 "mana": 1,
                 "draw": 0,
                 "power": 0
-            },
-        ],
-    },
+            }
+        ]
+    }
 }

@@ -13,7 +13,7 @@ int json_to_cards(const char* file_path, card_t* card)
     optionnal_char_t c;
     m_index = 0;
     size_t deck_size = 0;
-    char* last_token;
+    char *last_token, *dump;
     int is_effect = 0;
 
     file = fopen(file_path, "rb");
@@ -73,21 +73,25 @@ int json_to_cards(const char* file_path, card_t* card)
         switch(c.value)
         {
             case ' ':
-                _consume();
+                dump = _consume();
+                free(dump);
                 break;
             case '\n':
-                _consume();
+                dump = _consume();
+                free(dump);
                 break;
             case '{':
                if (m_index == 0)
                {
-                    _consume();
+                    dump = _consume();
+                    free(dump);
                } 
                else 
                {
                    if(is_effect)
                    {
-                        _consume();
+                        dump = _consume();
+                        free(dump);
                    }
                    else 
                    {
@@ -97,13 +101,15 @@ int json_to_cards(const char* file_path, card_t* card)
                         strcpy(card->name, last_token);
                         free(last_token);
                         last_token = NULL;
-                        _consume();
+                        dump = _consume();
+                        free(dump);
                         printf("NAME : %s\n", card->name);
                    }
                }
                break;
             case '}':
-               _consume();
+               dump = _consume();
+               free(dump);
                break;
             case '"':
                // is m_buffer isn't null, then this is a closing 
@@ -115,7 +121,8 @@ int json_to_cards(const char* file_path, card_t* card)
                         strcpy(last_token, m_buffer);
                         free(m_buffer);
                         m_buffer = NULL;
-                        _consume(2);
+                        dump = _consume(2);
+                        free(dump);
                         printf("TOKEN : %s\n", last_token);
                     }
                     else
@@ -138,7 +145,8 @@ int json_to_cards(const char* file_path, card_t* card)
                                card->class = (CARD_CLASS) BASE_DECK;
                         }
 
-                        _consume();
+                        dump = _consume();
+                        free(dump);
                         free(last_token);
                         free(m_buffer);
                         m_buffer = NULL;
@@ -147,7 +155,8 @@ int json_to_cards(const char* file_path, card_t* card)
                }
                else 
                {
-                    _consume();
+                    dump = _consume();
+                    free(dump);
                     int field_length = 0;
                     optionnal_char_t field;
                     while((field = _peek(field_length)).has_value)
@@ -166,14 +175,17 @@ int json_to_cards(const char* file_path, card_t* card)
                break;
             case '[':
                is_effect = 1;
-               _consume();
+               dump = _consume();
+               free(dump);
                break;
             case ']':
                is_effect = 0;
-               _consume();
+               dump = _consume();
+               free(dump);
                break;
             case ',':
-               _consume();
+               dump = _consume();
+               free(dump);
                break;
 
             default:

@@ -11,6 +11,8 @@
 #include <errno.h>
 #include <pthread.h>
 
+#include "packet.h"
+
 typedef struct 
 {
     int player1, player2, count;
@@ -21,5 +23,7 @@ typedef struct
     int connfd;
     room_t* room;
 } thread_args;
+
+void* client_handler(void* args);
 
 #endif // SERVER_HPP

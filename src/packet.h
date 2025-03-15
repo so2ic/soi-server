@@ -1,7 +1,10 @@
 #ifndef PACKET_H
 #define PACKET_H
 
-typedef struct meta_t
+/* LIST OF META TYPE
+ * 0x01 -> game start
+*/
+typedef struct
 {
     uint8_t type;
     size_t size; 

@@ -16,32 +16,6 @@
 #define PORT 5087
 #define SA struct sockaddr
 
-void* chat(void* args)
-{
-    meta_t meta_data;
-    char buffer[80];
-    thread_args* actual_args = args;
-    int connfd = actual_args->connfd;
-    room_t* room = actual_args->room;
-
-    printf("waiting for opponent\n");
-    while(room->count < 2);
-
-    int ennemy = room->player1 == connfd ? room->player2 : room->player1;
-    printf("ennemy found : %d\n", ennemy);
-    for(;;)
-    {
-        recv(connfd, &buffer, sizeof(buffer), 0);
-
-        printf("message from client : %s\n", buffer);
-
-        send(ennemy, &buffer, strlen(buffer) + 1, 0);
-        char* msg = "Message get";
-        send(connfd, msg, strlen(msg) + 1, 0);
-        printf("Message sent");
-    }
-}
-
 int main(int argc, char** argv)
 {
     card_t** cards = NULL;
@@ -59,10 +33,7 @@ int main(int argc, char** argv)
         printf("\nCARD\nNAME : %s\nID : %d\nCLASS : %d\nTYPE: %d\nMANA %d\nDRAW : %d\nPOWER : %d\n",cards[0]->name,cards[0]->id,cards[0]->class,cards[0]->type,cards[0]->mana,cards[0]->draw,cards[0]->power);
         printf("\nCARD\nNAME : %s\nID : %d\nCLASS : %d\nTYPE: %d\nMANA %d\nDRAW : %d\nPOWER : %d\n",cards[1]->name,cards[1]->id,cards[1]->class,cards[1]->type,cards[1]->mana,cards[1]->draw,cards[1]->power);
     }
-    // Code to start the server
-    // listen to socket and start threads
-    // uncomment after json parser is working 
-    /*
+
     pthread_t* threads_id = (pthread_t*) malloc(sizeof(pthread_t));
     room_t* room = (room_t*) malloc(sizeof(room_t));
     room->count = 0;
@@ -120,11 +91,10 @@ int main(int argc, char** argv)
         threads_id = (pthread_t*) realloc(threads_id, client_count * sizeof(pthread_t));
         thread_args args = {.connfd = connfd, .room = room};
 
-        pthread_create(&threads_id[client_count - 1], NULL, chat, &args);  
+        pthread_create(&threads_id[client_count - 1], NULL, client_handler, &args);  
     }
 
     close(sockfd);
-    */
     for(int i = 0; i < 2; ++i)
         free(cards[i]);
     free(cards);

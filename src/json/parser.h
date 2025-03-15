@@ -15,7 +15,7 @@ typedef struct {
 } optionnal_char_t;
 
 // output : int 0 on success, 1 on failure
-int json_to_cards(const char* file_path, card_t* card);
+int json_to_cards(const char* file_path, card_t** cards);
 optionnal_char_t peek(int i);
 char* consume(int i);
 

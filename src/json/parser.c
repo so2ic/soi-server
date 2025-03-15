@@ -6,7 +6,7 @@ char* m_buffer = NULL;
 char* m_content = NULL;
 
 // Parsing function
-int json_to_cards(const char* file_path, card_t* card)
+int json_to_cards(const char* file_path, card_t** cards)
 {
     FILE* file;
     long length;
@@ -57,13 +57,13 @@ int json_to_cards(const char* file_path, card_t* card)
             m_buffer = _consume(number_length);
 
             if(strcmp(last_token,"id") == 0)
-                    card->id = atoi(m_buffer);
+                    cards[deck_size]->id = atoi(m_buffer);
             if(strcmp(last_token,"mana") == 0)
-                    card->mana = atoi(m_buffer);
+                    cards[deck_size]->mana = atoi(m_buffer);
             if(strcmp(last_token,"power") == 0)
-                    card->power = atoi(m_buffer);
+                    cards[deck_size]->power = atoi(m_buffer);
             if(strcmp(last_token,"draw") == 0)
-                    card->draw = atoi(m_buffer);
+                    cards[deck_size]->draw = atoi(m_buffer);
 
             free(m_buffer);
             free(last_token);
@@ -95,21 +95,47 @@ int json_to_cards(const char* file_path, card_t* card)
                    }
                    else 
                    {
-                        // Maybe uncomment later on
-                        //card = (card_t*) malloc(sizeof(card_t));
-                        card->name = malloc(strlen(last_token) + 1);
-                        strcpy(card->name, last_token);
+                        cards[deck_size] = (card_t*) malloc(sizeof(card_t));
+                        cards[deck_size]->name = malloc(strlen(last_token) + 1);
+                        strcpy(cards[deck_size]->name, last_token);
                         free(last_token);
                         last_token = NULL;
                         dump = _consume();
                         free(dump);
-                        printf("NAME : %s\n", card->name);
+                        printf("NAME : %s\n", cards[deck_size]->name);
                    }
                }
                break;
             case '}':
-               dump = _consume();
-               free(dump);
+               if(is_effect)
+               {
+                    dump = _consume();
+                    free(dump);
+               }
+               else
+               {
+                    // end of card 
+                    optionnal_char_t next_field;
+                    int field_length = 1;
+                    while((next_field = peek(field_length)).has_value)
+                    {
+                        // there is another card
+                        if(next_field.value == '"') 
+                        {
+                            ++deck_size;
+                            // add to be improved
+                            //cards = realloc(cards, (deck_size+1) * sizeof(card_t)); 
+                            break;
+                        }
+
+                        // this is the last card
+                        if(next_field.value == '}')
+                            break;
+                        ++field_length;
+                    }
+                    dump = _consume();
+                    free(dump);
+               }
                break;
             case '"':
                // is m_buffer isn't null, then this is a closing 
@@ -130,19 +156,19 @@ int json_to_cards(const char* file_path, card_t* card)
                         if(strcmp(last_token, "class") == 0)
                         {
                             if(strcmp(m_buffer, "allies") == 0)
-                              card->type = (CARD_TYPE) ALLIES;  
+                              cards[deck_size]->type = (CARD_TYPE) ALLIES;  
 
                             if(strcmp(m_buffer, "mercenaries") == 0)
-                              card->type = (CARD_TYPE) ALLIES;  
+                              cards[deck_size]->type = (CARD_TYPE) ALLIES;  
 
                             if(strcmp(m_buffer, "champion") == 0)
-                              card->type = (CARD_TYPE) ALLIES;  
+                              cards[deck_size]->type = (CARD_TYPE) ALLIES;  
                         }
 
                         if(strcmp(last_token, "type") == 0)
                         {
                            if(strcmp(m_buffer, "base") == 0)
-                               card->class = (CARD_CLASS) BASE_DECK;
+                               cards[deck_size]->class = (CARD_CLASS) BASE_DECK;
                         }
 
                         dump = _consume();

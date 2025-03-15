@@ -10,5 +10,17 @@
                 "power": 0
             }
         ]
+    },
+    "test": {
+        "id": 2,
+        "class": "allies",
+        "type": "base",
+        "effects": [
+            {
+                "mana": 0,
+                "draw":0,
+                "power": 1
+            }
+        ]
     }
 }

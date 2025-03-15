@@ -44,14 +44,21 @@ void* chat(void* args)
 
 int main(int argc, char** argv)
 {
-    char* file_path = "/Users/vincentastolfi/git/soi/soi-server/src/card/cards.json";
-    card_t* card = (card_t*) malloc(sizeof(card_t));
-    int err = json_to_cards(file_path, card);
-    if(err)
-        printf("error parsing");
+    card_t** cards = NULL;
 
-    printf("\n\n----PARSING FINISHED----\n\n");
-    printf("CARD\nNAME : %s\nID : %d\nCLASS : %d\nTYPE: %d\nMANA %d\nDRAW : %d\nPOWER : %d\n",card->name,card->id,card->class,card->type,card->mana,card->draw,card->power);
+    // loads cards from the json file
+    {
+        char* file_path = "/Users/vincentastolfi/git/soi/soi-server/src/card/cards.json";
+        // only works if we already know how much cards are describe in json file
+        cards = (card_t**) calloc(2, sizeof(card_t));
+        int err = json_to_cards(file_path, cards);
+        if(err)
+            printf("error parsing");
+
+        printf("\n\n----PARSING FINISHED----\n\n");
+        printf("\nCARD\nNAME : %s\nID : %d\nCLASS : %d\nTYPE: %d\nMANA %d\nDRAW : %d\nPOWER : %d\n",cards[0]->name,cards[0]->id,cards[0]->class,cards[0]->type,cards[0]->mana,cards[0]->draw,cards[0]->power);
+        printf("\nCARD\nNAME : %s\nID : %d\nCLASS : %d\nTYPE: %d\nMANA %d\nDRAW : %d\nPOWER : %d\n",cards[1]->name,cards[1]->id,cards[1]->class,cards[1]->type,cards[1]->mana,cards[1]->draw,cards[1]->power);
+    }
     // Code to start the server
     // listen to socket and start threads
     // uncomment after json parser is working 
@@ -118,5 +125,8 @@ int main(int argc, char** argv)
 
     close(sockfd);
     */
+    for(int i = 0; i < 2; ++i)
+        free(cards[i]);
+    free(cards);
     return 0;
 }

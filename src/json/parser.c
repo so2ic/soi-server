@@ -123,7 +123,7 @@ int json_to_cards(const char* file_path, card_t** cards)
                         if(next_field.value == '"') 
                         {
                             ++deck_size;
-                            // add to be improved
+                            // had to be improved
                             //cards = realloc(cards, (deck_size+1) * sizeof(card_t)); 
                             break;
                         }

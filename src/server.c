@@ -15,8 +15,19 @@ void* client_handler(void* args)
 
     // inform player that room is full
     {
-        meta_t packet = {.type = 0x01, .size = 0};
-        send(connfd, &packet, sizeof(meta_t), 0); 
+        meta_t send_packet = {.type = 0x01, .size = 0};
+        meta_t recv_packet;
+        bzero(&recv_packet, sizeof(meta_t));
+        send(connfd, &send_packet, sizeof(meta_t), 0); 
+        recv(connfd, &recv_packet, sizeof(meta_t), 0);
+
+        if(recv_packet.type != 0xFF)
+        {
+            printf("Client %d does not get message\n", connfd);
+            exit(1);
+            // TODO 
+            // handle error properly
+        }
     }
 
     for(;;) {}

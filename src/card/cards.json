@@ -3,6 +3,7 @@
         "id": 1,
         "class": "allies",
         "type": "base",
+        "rarity": 7,
         "effects": [
             {
                 "mana": 1,

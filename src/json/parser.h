@@ -11,7 +11,7 @@
 
 typedef struct {
     char value;
-    int has_value;
+   int has_value;
 } optionnal_char_t;
 
 // output : int 0 on success, 1 on failure
@@ -19,7 +19,7 @@ int json_to_cards(const char* file_path, card_t** cards);
 optionnal_char_t peek(int i);
 char* consume(int i);
 
-// Global variables
+// global variables
 extern int m_index;
 extern char* m_buffer;
 extern char* m_content;

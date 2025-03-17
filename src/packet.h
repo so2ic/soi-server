@@ -3,6 +3,11 @@
 
 /* LIST OF META TYPE
  * 0x01 -> game start
+ *
+ *
+ *
+ * Received on callback
+ * 0xFF -> ACK
 */
 typedef struct
 {

@@ -20,7 +20,7 @@ typedef enum CARD_CLASS
 typedef struct card_t 
 {
     char* name;
-    int id, mana, power, draw;
+    int id, mana, power, draw, rarity;
     CARD_TYPE type;
     CARD_CLASS class;
 } card_t;

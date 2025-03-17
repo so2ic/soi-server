@@ -12,36 +12,55 @@
 #include "packet.h"
 #include "server.h"
 #include "json/parser.h"
+#include "data_structs/linked_list.h"
 
 #define PORT 5087
 #define SA struct sockaddr
+#define CARD_NUMBER 2
 
 int main(int argc, char** argv)
 {
+    ll_t* list = ll_init();
+    card_t *c = (card_t*) malloc(sizeof(card_t));
+    c->name = "TEST";
+    ll_insert(list, c);
+
+
     card_t** cards = NULL;
+    card_t** draw = NULL;
+    card_t** base_deck = NULL;
+    pthread_t* threads_id = (pthread_t*) malloc(sizeof(pthread_t));
+    room_t* room = (room_t*) malloc(sizeof(room_t));
+    int sockfd, connfd, len;
+    int client_count = 0;
+    struct sockaddr_in sockserve, cli;
 
     // loads cards from the json file
     {
         char* file_path = "/Users/vincentastolfi/git/soi/soi-server/src/card/cards.json";
         // only works if we already know how much cards are describe in json file
-        cards = (card_t**) calloc(2, sizeof(card_t));
+        cards = (card_t**) calloc(CARD_NUMBER, sizeof(card_t));
+        int deck_size = 0, draw_size = 0;
         int err = json_to_cards(file_path, cards);
         if(err)
             printf("error parsing");
 
+
         printf("\n\n----PARSING FINISHED----\n\n");
-        printf("\nCARD\nNAME : %s\nID : %d\nCLASS : %d\nTYPE: %d\nMANA %d\nDRAW : %d\nPOWER : %d\n",cards[0]->name,cards[0]->id,cards[0]->class,cards[0]->type,cards[0]->mana,cards[0]->draw,cards[0]->power);
-        printf("\nCARD\nNAME : %s\nID : %d\nCLASS : %d\nTYPE: %d\nMANA %d\nDRAW : %d\nPOWER : %d\n",cards[1]->name,cards[1]->id,cards[1]->class,cards[1]->type,cards[1]->mana,cards[1]->draw,cards[1]->power);
+
+        for(int i = 0; i < CARD_NUMBER; ++i)
+        {
+            if(cards[i]->type == (CARD_TYPE) BASE_DECK)
+                ++deck_size;
+            else
+                ++draw_size;
+        }
+
+        base_deck = (card_t**) calloc(deck_size, sizeof(card_t));
+        draw = (card_t**) calloc(draw_size, sizeof(card_t));
     }
 
-    pthread_t* threads_id = (pthread_t*) malloc(sizeof(pthread_t));
-    room_t* room = (room_t*) malloc(sizeof(room_t));
     room->count = 0;
-
-    int sockfd, connfd, len;
-    int client_count = 0;
-    struct sockaddr_in sockserve, cli;
-
     sockfd = socket(PF_INET, SOCK_STREAM, 0);
     if (sockfd == -1)
     {
@@ -79,11 +98,12 @@ int main(int argc, char** argv)
         }
         printf("New client connected : %d\n", connfd);
 
+        player_t p = (player_t) {.socket = connfd, .deck = NULL, .discard = NULL};
         // add new player to the room
         if (room->count == 0)
-            room->player1 = connfd;
+            room->player1 = p;
         else
-            room->player2 = connfd;
+            room->player2 = p;
         room->count++;
 
         // create thread for new client

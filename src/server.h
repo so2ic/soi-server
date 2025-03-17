@@ -10,13 +10,10 @@
 #include <unistd.h>
 #include <errno.h>
 #include <pthread.h>
+#include <stdlib.h>
 
 #include "packet.h"
-
-typedef struct 
-{
-    int player1, player2, count;
-} room_t;
+#include "game.h"
 
 typedef struct 
 {

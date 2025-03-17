@@ -11,7 +11,6 @@ int json_to_cards(const char* file_path, card_t** cards)
     FILE* file;
     long length;
     optionnal_char_t c;
-    m_index = 0;
     size_t deck_size = 0;
     char *last_token, *dump;
     int is_effect = 0;
@@ -64,6 +63,8 @@ int json_to_cards(const char* file_path, card_t** cards)
                     cards[deck_size]->power = atoi(m_buffer);
             if(strcmp(last_token,"draw") == 0)
                     cards[deck_size]->draw = atoi(m_buffer);
+            if(strcmp(last_token,"rarity") == 0)
+                    cards[deck_size]->rarity = atoi(m_buffer);
 
             free(m_buffer);
             free(last_token);

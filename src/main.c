@@ -20,19 +20,11 @@
 
 int main(int argc, char** argv)
 {
-    ll_t* list = ll_init();
-    card_t *c = (card_t*) malloc(sizeof(card_t));
-    c->name = "TEST";
-    ll_insert(list, c);
-
-
     card_t** cards = NULL;
-    card_t** draw = NULL;
-    card_t** base_deck = NULL;
     pthread_t* threads_id = (pthread_t*) malloc(sizeof(pthread_t));
     room_t* room = (room_t*) malloc(sizeof(room_t));
     int sockfd, connfd, len;
-    int client_count = 0;
+    int client_count = 0, deck_size = 0, draw_size = 0;
     struct sockaddr_in sockserve, cli;
 
     // loads cards from the json file
@@ -40,7 +32,6 @@ int main(int argc, char** argv)
         char* file_path = "/Users/vincentastolfi/git/soi/soi-server/src/card/cards.json";
         // only works if we already know how much cards are describe in json file
         cards = (card_t**) calloc(CARD_NUMBER, sizeof(card_t));
-        int deck_size = 0, draw_size = 0;
         int err = json_to_cards(file_path, cards);
         if(err)
             printf("error parsing");
@@ -56,8 +47,6 @@ int main(int argc, char** argv)
                 ++draw_size;
         }
 
-        base_deck = (card_t**) calloc(deck_size, sizeof(card_t));
-        draw = (card_t**) calloc(draw_size, sizeof(card_t));
     }
 
     room->count = 0;
@@ -98,20 +87,48 @@ int main(int argc, char** argv)
         }
         printf("New client connected : %d\n", connfd);
 
-        player_t p = (player_t) {.socket = connfd, .deck = NULL, .discard = NULL};
         // add new player to the room
         if (room->count == 0)
-            room->player1 = p;
+            room->socket_p1 = connfd;
         else
-            room->player2 = p;
+        {
+            ll_t* base_deck = ll_init();
+            ll_t* draw = ll_init();
+
+            int card_in_deck = 0, card_in_draw = 0;
+            for(int i = 0; i < CARD_NUMBER; ++i)
+            {
+                if(cards[i]->type == (CARD_TYPE) BASE_DECK) 
+                {
+                    card_t* temp = (card_t*) malloc(sizeof(card_t));
+                    card_copy(temp, cards[i]);
+                    ll_insert(base_deck, temp);
+                }
+                else
+                {
+                    card_t* temp = (card_t*) malloc(sizeof(card_t));
+                    card_copy(temp, cards[i]);
+                    ll_insert(draw, temp);
+                }
+
+            }
+ 
+            room->socket_p2 = connfd;
+            game_t g = (game_t) {.draw = draw, .base_deck = base_deck};
+            room->game = &g;
+        }
+
         room->count++;
 
         // create thread for new client
         ++client_count;
         threads_id = (pthread_t*) realloc(threads_id, client_count * sizeof(pthread_t));
-        thread_args args = {.connfd = connfd, .room = room};
 
-        pthread_create(&threads_id[client_count - 1], NULL, client_handler, &args);  
+        thread_args* args = malloc(sizeof(thread_args));
+        args->connfd = connfd;
+        args->room = room;
+
+        pthread_create(&threads_id[client_count - 1], NULL, client_handler, args);  
     }
 
     close(sockfd);

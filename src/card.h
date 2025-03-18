@@ -1,6 +1,9 @@
 #ifndef CARD_HPP
 #define CARD_HPP
 
+#include <stdlib.h>
+#include <string.h>
+
 typedef enum CARD_TYPE
 {
     ALLIES,
@@ -24,5 +27,7 @@ typedef struct card_t
     CARD_TYPE type;
     CARD_CLASS class;
 } card_t;
+
+void card_copy(card_t* new, card_t* c);
 
 #endif // CARD_HPP

@@ -30,5 +30,43 @@ void* client_handler(void* args)
         }
     }
 
-    for(;;) {}
+    // send base deck to clients
+    {
+        game_t* game = room->game;
+
+        // tell the client how many card we are going to send
+        meta_t size_info = {.type = 0x02, .size = (size_t) game->base_deck->count};
+        meta_t callback;
+        send(connfd, &size_info, sizeof(meta_t), 0);
+        recv(connfd, &callback, sizeof(meta_t), 0);
+
+        if(callback.type != 0xFF)
+        {
+            printf("client doesn't receive deck size\n");
+            exit(1);
+        }
+
+        for(int i = 0; i < game->base_deck->count; ++i)
+        {
+            card_t* card = (card_t*) ll_get_data_at(game->base_deck, i);
+            printf("sending card : %s\n", card->name);
+            for(int j = 0; j < card->rarity; ++j)
+            {
+                meta_t callback;
+                send(connfd, card, sizeof(card_t), 0);
+                recv(connfd, &callback, sizeof(meta_t), 0);
+                
+                if(callback.type != 0xFF)
+                {
+                    printf("card not receive by client\n");
+                    exit(1); 
+                }
+            }
+        }
+    }
+
+    for(;;) 
+    {
+        sleep(1);
+    }
 }

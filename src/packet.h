@@ -3,7 +3,7 @@
 
 /* LIST OF META TYPE
  * 0x01 -> game start
- *
+ * 0x02 -> deck size
  *
  *
  * Received on callback

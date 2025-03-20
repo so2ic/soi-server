@@ -22,5 +22,7 @@ typedef struct
 } thread_args;
 
 void* client_handler(void* args);
+void send_card(int connfd, card_t* card);
+int check_callback(meta_t* callback);
 
 #endif // SERVER_HPP

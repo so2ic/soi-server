@@ -3,8 +3,9 @@
 
 /* LIST OF META TYPE
  * 0x01 -> game start
- * 0x02 -> deck size
- *
+ * 0x02 -> 
+ * 0x03 -> send card
+ * 0x04 -> send card name
  *
  * Received on callback
  * 0xFF -> ACK

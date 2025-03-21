@@ -3,7 +3,7 @@
 
 /* LIST OF META TYPE
  * 0x01 -> game start
- * 0x02 -> 
+ * 0x02 -> ask to play
  * 0x03 -> send card
  * 0x04 -> send card name
  *

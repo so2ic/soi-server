@@ -103,7 +103,7 @@ int json_to_cards(const char* file_path, card_t** cards)
                         last_token = NULL;
                         dump = _consume();
                         free(dump);
-                        printf("NAME : %s\n", cards[deck_size]->name);
+                        //printf("NAME : %s\n", cards[deck_size]->name);
                    }
                }
                break;
@@ -150,7 +150,7 @@ int json_to_cards(const char* file_path, card_t** cards)
                         m_buffer = NULL;
                         dump = _consume(2);
                         free(dump);
-                        printf("TOKEN : %s\n", last_token);
+                        //printf("TOKEN : %s\n", last_token);
                     }
                     else
                     {
@@ -197,7 +197,7 @@ int json_to_cards(const char* file_path, card_t** cards)
                     }
 
                     m_buffer = _consume(field_length);
-                    printf("BUFFER : %s\n", m_buffer);
+                    //printf("BUFFER : %s\n", m_buffer);
                }
                break;
             case '[':

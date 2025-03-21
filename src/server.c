@@ -35,8 +35,6 @@ void* client_handler(void* args)
     {
         game_t* game = room->game;
 
-        printf("CONNFD : %d\n", connfd);
-
         for(int i = 0; i < game->base_deck->count; ++i)
         {
             card_t* card = (card_t*) ll_get_data_at(game->base_deck, i);
@@ -52,12 +50,22 @@ void* client_handler(void* args)
         game_t* game = room->game;
         int actual_player = room->socket_p1;
         int is_game_running = 1;
+        meta_t send_packet = {.type = 0x02, .size = 0};
+        int card_id = -1;
+        meta_t callback;
 
         do
         {
-            if(connfd == room->socket_p1)
-            {
-            } 
+            // ask actual player to play
+            send(actual_player, &send_packet, sizeof(meta_t), 0);
+            recv(actual_player, &callback, sizeof(meta_t), 0);
+
+            // we receive the id of the card the player choose
+            send_packet.type = 0xFF;
+            recv(actual_player, &card_id, sizeof(int), 0);
+            send(actual_player, &send_packet, sizeof(meta_t), 0);
+
+            // do treatment depending on the received card
         } 
         while(is_game_running);
     }
@@ -91,7 +99,6 @@ void send_card(int connfd, card_t* card)
     // send the card name size
     send_packet.type = 0x04;
     send_packet.size = strlen(card->name) + 1;
-    printf("CARD NAME SIZE : %zu\n", send_packet.size);
     send(connfd, &send_packet, sizeof(meta_t), 0);
     recv(connfd, &callback, sizeof(meta_t), 0);
     if(!check_callback(&callback))

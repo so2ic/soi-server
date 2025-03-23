@@ -79,6 +79,7 @@ int main(int argc, char** argv)
 
     while(1)
     {
+        player_t* p = (player_t*) malloc(sizeof(player_t));
         connfd = accept(sockfd, (struct sockaddr*)&cli, (socklen_t *)&len);    
         if(connfd < 0)
         {
@@ -86,10 +87,15 @@ int main(int argc, char** argv)
             return 1;
         }
         printf("New client connected : %d\n", connfd);
+        p->socket = connfd;
+        p->mana = 0;
+        p->hp = 50;
+        p->mastery = 0;
+        p->power = 0;
 
         // add new player to the room
         if (room->count == 0)
-            room->socket_p1 = connfd;
+            room->p1 = p;
         else
         {
             ll_t* base_deck = ll_init();
@@ -113,7 +119,7 @@ int main(int argc, char** argv)
 
             }
  
-            room->socket_p2 = connfd;
+            room->p2 = p;
             game_t g = (game_t) {.draw = draw, .base_deck = base_deck};
             room->game = &g;
         }

@@ -10,10 +10,14 @@ typedef struct
    ll_t* base_deck;
 } game_t;
 
+typedef struct
+{
+    int socket, mana, hp, mastery, power;
+} player_t;
+
 typedef struct 
 {
-    int socket_p1;
-    int socket_p2;
+    player_t *p1, *p2;
     int count;
     game_t* game;
 } room_t;

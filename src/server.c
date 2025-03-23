@@ -48,7 +48,7 @@ void* client_handler(void* args)
     // game loop
     {
         game_t* game = room->game;
-        int actual_player = room->socket_p1;
+        int actual_player = room->p1->socket;
         int is_game_running = 1;
         meta_t send_packet = {.type = 0x02, .size = 0};
         int card_id = -1;
@@ -56,15 +56,17 @@ void* client_handler(void* args)
 
         do
         {
-            // ask actual player to play
-            send(actual_player, &send_packet, sizeof(meta_t), 0);
-            recv(actual_player, &callback, sizeof(meta_t), 0);
+            if(connfd == actual_player)
+            {
+                // ask actual player to play
+                send(actual_player, &send_packet, sizeof(meta_t), 0);
+                recv(actual_player, &callback, sizeof(meta_t), 0);
 
-            // we receive the id of the card the player choose
-            send_packet.type = 0xFF;
-            recv(actual_player, &card_id, sizeof(int), 0);
-            send(actual_player, &send_packet, sizeof(meta_t), 0);
-
+                // we receive the id of the card the player choose
+                send_packet.type = 0xFF;
+                recv(actual_player, &card_id, sizeof(int), 0);
+                send(actual_player, &send_packet, sizeof(meta_t), 0);
+            }
             // do treatment depending on the received card
         } 
         while(is_game_running);

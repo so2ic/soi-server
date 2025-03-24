@@ -57,7 +57,7 @@ int main(int argc, char** argv)
         return 1;
     }
     else
-        printf("Socker created\n");
+        printf("Socket created\n");
     bzero(&sockserve, sizeof(sockserve));
 
     sockserve.sin_family = AF_INET;

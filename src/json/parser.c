@@ -175,6 +175,7 @@ int json_to_cards(const char* file_path, card_t** cards)
                     }
                     else
                     {
+
                         if(strcmp(last_token, "class") == 0)
                         {
                             if(strcmp(m_buffer, "allies") == 0)

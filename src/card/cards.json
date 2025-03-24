@@ -8,8 +8,10 @@
             {
                 "count": 1,
                 "condition": [
-                    "need": "none",
-                    "mana": 1
+                    {
+                        "need": "none",
+                        "mana": 1
+                    }
                 ]
             }
         ]
@@ -23,28 +25,86 @@
             {
                 "count": 4,
                 "condition": [
-                    "need": "none", 
-                    "power": 2
+                    {
+                        "need": "none", 
+                        "power": 2
+                    }
                 ],
                 "condition": [
-                    "need": "mastery",
-                    "count": 10,
-                    "type": "instead",
-                    "power": 3
+                    {
+                        "need": "mastery",
+                        "count": 10,
+                        "type": "instead",
+                        "power": 3
+                    }
                 ],
                 "condition": [
-                    "need": "mastery",
-                    "count": 20,
-                    "type": "instead",
-                    "power": 5
+                    {
+                        "need": "mastery",
+                        "count": 20,
+                        "type": "instead",
+                        "power": 5
+                    }
                 ],
                 "condition": [
-                    "need": "mastery",
-                    "count": 30,
-                    "type": "instead",
-                    "power": "inf"
+                    {
+                        "need": "mastery",
+                        "count": 30,
+                        "type": "instead",
+                        "power": 100
+                    }
                 ]
             }
         ] 
+    },
+    "Blaster": {
+        "id": 3,
+        "class": "allies",
+        "type": "base",
+        "rarity": 1,
+        "effects": [
+            {
+                "count": 1,
+                "condition": [
+                    {
+                        "need": "none",
+                        "power": 1
+                    }
+                ]
+            }
+        ]
+    },
+    "Shard reactor": {
+        "id": 4,
+        "class": "allies",
+        "type": "base",
+        "rarity": 1,
+        "effects": [
+            {
+                "count": 3,
+                "condition": [
+                    {
+                        "need": "none",
+                        "mana": 2
+                    }
+                ],
+                "condition": [
+                    {
+                        "need": "mastery",
+                        "count": 5,
+                        "type": "instead",
+                        "mana": 3
+                    }
+                ],
+                "condition": [
+                    {
+                        "need": "mastery",
+                        "count": 15,
+                        "type": "instead",
+                        "mana": 4
+                    }
+                ]
+            }
+        ]
     }
 }

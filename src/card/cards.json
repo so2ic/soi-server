@@ -6,23 +6,45 @@
         "rarity": 7,
         "effects": [
             {
-                "mana": 1,
-                "draw": 0,
-                "power": 0
+                "count": 1,
+                "condition": [
+                    "need": "none",
+                    "mana": 1
+                ]
             }
         ]
     },
-    "test": {
+    "Infinity Shard": {
         "id": 2,
         "class": "allies",
         "type": "base",
-        "rarity": 2,
+        "rarity": 1,
         "effects": [
             {
-                "mana": 0,
-                "draw":0,
-                "power": 1
+                "count": 4,
+                "condition": [
+                    "need": "none", 
+                    "power": 2
+                ],
+                "condition": [
+                    "need": "mastery",
+                    "count": 10,
+                    "type": "instead",
+                    "power": 3
+                ],
+                "condition": [
+                    "need": "mastery",
+                    "count": 20,
+                    "type": "instead",
+                    "power": 5
+                ],
+                "condition": [
+                    "need": "mastery",
+                    "count": 30,
+                    "type": "instead",
+                    "power": "inf"
+                ]
             }
-        ]
+        ] 
     }
 }

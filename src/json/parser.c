@@ -12,8 +12,8 @@ int json_to_cards(const char* file_path, card_t** cards)
     long length;
     optionnal_char_t c;
     size_t deck_size = 0;
-    char *last_token, *dump;
-    int is_effect = 0;
+    char *last_token = NULL, *dump;
+    int is_effect = 0, effect_count = 0, is_condition = 0;
 
     file = fopen(file_path, "rb");
     if (file == NULL)
@@ -55,16 +55,31 @@ int json_to_cards(const char* file_path, card_t** cards)
 
             m_buffer = _consume(number_length);
 
+            // we are strating the effects reading
+            if(strcmp(last_token,"count") == 0)
+            {
+                if(is_condition)
+                {
+                    cards[deck_size]->effects[effect_count]->condition.value = atoi(m_buffer);
+                }
+                else
+                {
+                    cards[deck_size]->effects = (effect_t**) calloc(atoi(m_buffer), sizeof(effect_t)); 
+                    cards[deck_size]->effect_count = atoi(m_buffer); 
+                }
+            }
+
             if(strcmp(last_token,"id") == 0)
                     cards[deck_size]->id = atoi(m_buffer);
-            if(strcmp(last_token,"mana") == 0)
-                    cards[deck_size]->mana = atoi(m_buffer);
-            if(strcmp(last_token,"power") == 0)
-                    cards[deck_size]->power = atoi(m_buffer);
-            if(strcmp(last_token,"draw") == 0)
-                    cards[deck_size]->draw = atoi(m_buffer);
             if(strcmp(last_token,"rarity") == 0)
                     cards[deck_size]->rarity = atoi(m_buffer);
+
+            if(strcmp(last_token,"mana") == 0)
+                    cards[deck_size]->effects[effect_count]->gain.value = atoi(m_buffer);
+            if(strcmp(last_token,"power") == 0)
+                    cards[deck_size]->effects[effect_count]->gain.value = atoi(m_buffer);
+            if(strcmp(last_token,"draw") == 0)
+                    cards[deck_size]->effects[effect_count]->gain.value = atoi(m_buffer);
 
             free(m_buffer);
             free(last_token);
@@ -144,6 +159,12 @@ int json_to_cards(const char* file_path, card_t** cards)
                {
                     if(_peek(1).value == ':')
                     {
+                        if(last_token != NULL)
+                        {
+                            free(last_token);
+                            last_token = NULL;
+                        }
+
                         last_token = malloc(strlen(m_buffer + 1));
                         strcpy(last_token, m_buffer);
                         free(m_buffer);
@@ -168,8 +189,32 @@ int json_to_cards(const char* file_path, card_t** cards)
 
                         if(strcmp(last_token, "type") == 0)
                         {
-                           if(strcmp(m_buffer, "base") == 0)
-                               cards[deck_size]->class = (CARD_CLASS) BASE_DECK;
+                            if(is_effect)
+                            {
+                                if(strcmp(m_buffer, "instead") == 0)
+                                    cards[deck_size]->effects[effect_count]->type =
+                                        (EFFECT_TYPE) INSTEAD;
+                            } 
+                            else
+                                if(strcmp(m_buffer, "base") == 0)
+                                    cards[deck_size]->class = (CARD_CLASS) BASE_DECK;
+                        }
+
+                        if(strcmp(last_token, "need") == 0)
+                        {
+                            if(strcmp(m_buffer, "none") == 0)
+                            {
+                                cards[deck_size]->effects[effect_count]->type = 
+                                    (EFFECT_TYPE) BASE_TYPE;
+                                cards[deck_size]->effects[effect_count]->condition.resource = 
+                                    (EFFECT_NEED) BASE_NEED;
+                                cards[deck_size]->effects[effect_count]->condition.value = -1;
+                            }
+                            if(strcmp(m_buffer, "mastery") == 0)
+                            {
+                                cards[deck_size]->effects[effect_count]->condition.resource =
+                                    (EFFECT_NEED) MASTERY;
+                            }
                         }
 
                         dump = _consume();
@@ -201,12 +246,28 @@ int json_to_cards(const char* file_path, card_t** cards)
                }
                break;
             case '[':
-               is_effect = 1;
+               if(is_effect)
+               {
+                   cards[deck_size]->effects[effect_count] = (effect_t*) malloc(sizeof(effect_t));
+                   is_condition = 1;
+               }
+               else
+                   is_effect = 1;
+
                dump = _consume();
                free(dump);
                break;
             case ']':
-               is_effect = 0;
+               if(is_effect && cards[deck_size]->effect_count == effect_count)
+               {
+                   is_effect = 0;
+                   effect_count = 0; 
+               }
+               else
+               {
+                   is_condition = 0;
+                   effect_count++;
+               }
                dump = _consume();
                free(dump);
                break;

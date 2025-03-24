@@ -6,6 +6,7 @@ void card_copy(card_t* new, card_t* c)
 {
     new->name = malloc(strlen(c->name) + 1);
     strcpy(new->name, c->name);
+    /*
     new->id = c->id; 
     new->mana = c->mana;
     new->power = c->power;
@@ -13,4 +14,5 @@ void card_copy(card_t* new, card_t* c)
     new->rarity = c->rarity;
     new->type = c->type;
     new->class = c->class;
+    */
 }

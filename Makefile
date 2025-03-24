@@ -2,7 +2,7 @@
 CC=gcc
 
 # Compilation flags
-CFLAGS= -Wall
+CFLAGS= -Wall -g
 
 # Source directories
 SRC_DIR=src

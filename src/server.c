@@ -35,6 +35,54 @@ void* client_handler(void* args)
     if(connfd == room->p2->socket)
         room->p2->mastery = 1;
 
+    player_t* player = connfd == room->p1->socket ? room->p1 : room->p2;
+    
+    // send their stats to client
+    {
+        meta_t send_packet = (meta_t) {.type = 0x05, .size = (size_t) player->hp};
+        meta_t callback;
+        send(connfd, &send_packet, sizeof(meta_t), 0);
+        recv(connfd, &callback, sizeof(meta_t), 0);
+        if(!check_callback(&callback))
+        {
+            perror("sending hp");
+            exit(errno);
+        }
+
+        bzero(&callback, sizeof(meta_t));
+        send_packet.type = 0x06;
+        send_packet.size = (size_t) player->mana;
+        send(connfd, &send_packet, sizeof(meta_t), 0);
+        recv(connfd, &callback, sizeof(meta_t), 0);
+        if(!check_callback(&callback))
+        {
+            perror("sending mana");
+            exit(errno); 
+        }
+
+        bzero(&callback, sizeof(meta_t));
+        send_packet.type = 0x07;
+        send_packet.size = player->power;
+        send(connfd, &send_packet, sizeof(meta_t), 0);
+        recv(connfd, &callback, sizeof(meta_t), 0);
+        if(!check_callback(&callback))
+        {
+            perror("sending power");
+            exit(errno);
+        }
+
+        bzero(&callback, sizeof(meta_t));
+        send_packet.type = 0x08;
+        send_packet.size = player->mastery;
+        send(connfd, &send_packet, sizeof(meta_t), 0);
+        recv(connfd, &callback, sizeof(meta_t), 0);
+        if(!check_callback(&callback))
+        {
+            perror("sending mastery");
+            exit(errno);
+        }
+    }
+
     for(;;) {}
     /*
     // send base hand to clients

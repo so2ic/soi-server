@@ -6,6 +6,10 @@
  * 0x02 -> ask to play
  * 0x03 -> send card
  * 0x04 -> send card name
+ * 0x05 -> send hp
+ * 0x06 -> send mana
+ * 0x07 -> send power
+ * 0x08 -> send mastery
  *
  * Received on callback
  * 0xFF -> ACK

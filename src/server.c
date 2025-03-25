@@ -31,7 +31,13 @@ void* client_handler(void* args)
         }
     }
 
-    // send base deck to clients
+    // second player get 1 more mastery
+    if(connfd == room->p2->socket)
+        room->p2->mastery = 1;
+
+    for(;;) {}
+    /*
+    // send base hand to clients
     {
         game_t* game = room->game;
 
@@ -71,6 +77,7 @@ void* client_handler(void* args)
         } 
         while(is_game_running);
     }
+    */
 }
 
 void send_card(int connfd, card_t* card)

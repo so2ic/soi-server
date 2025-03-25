@@ -22,10 +22,11 @@ int main(int argc, char** argv)
 {
     card_t** cards = NULL;
     pthread_t* threads_id = (pthread_t*) malloc(sizeof(pthread_t));
-    room_t* room = (room_t*) malloc(sizeof(room_t));
+    room_t** rooms = (room_t**) malloc(sizeof(room_t));
     int sockfd, connfd, len;
-    int client_count = 0, deck_size = 0, draw_size = 0;
+    int client_count = 0, deck_size = 0, draw_size = 0, room_count = 0;
     struct sockaddr_in sockserve, cli;
+    game_t* game = (game_t*) malloc(sizeof(game_t));
 
     // loads cards from the json file
     {
@@ -49,7 +50,36 @@ int main(int argc, char** argv)
 
     }
 
-    room->count = 0;
+    // we store cards in a game info object
+    {
+        ll_t* base_deck = ll_init();
+        ll_t* draw = ll_init();
+
+        int card_in_deck = 0, card_in_draw = 0;
+        for(int i = 0; i < CARD_NUMBER; ++i)
+        {
+            if(cards[i]->type == (CARD_TYPE) BASE_DECK) 
+            {
+                card_t* temp = (card_t*) malloc(sizeof(card_t));
+                card_copy(temp, cards[i]);
+                ll_insert(base_deck, temp);
+            }
+            else
+            {
+                card_t* temp = (card_t*) malloc(sizeof(card_t));
+                card_copy(temp, cards[i]);
+                ll_insert(draw, temp);
+            }
+        } 
+
+        game->base_deck = base_deck;
+        game->draw = draw;
+    }
+
+    rooms[room_count] = (room_t*) malloc(sizeof(room_t));
+    rooms[room_count]->count = 0;
+    rooms[room_count]->game = game;
+
     sockfd = socket(PF_INET, SOCK_STREAM, 0);
     if (sockfd == -1)
     {
@@ -87,52 +117,39 @@ int main(int argc, char** argv)
             return 1;
         }
         printf("New client connected : %d\n", connfd);
+
         p->socket = connfd;
         p->mana = 0;
         p->hp = 50;
         p->mastery = 0;
         p->power = 0;
+        p->hand = (int*) calloc(5, sizeof(int));
+        p->deck = (int*) calloc(10, sizeof(int));
 
         // add new player to the room
-        if (room->count == 0)
-            room->p1 = p;
+        if (rooms[room_count]->count == 0)
+            rooms[room_count]->p1 = p;
         else
         {
-            ll_t* base_deck = ll_init();
-            ll_t* draw = ll_init();
-
-            int card_in_deck = 0, card_in_draw = 0;
-            for(int i = 0; i < CARD_NUMBER; ++i)
-            {
-                if(cards[i]->type == (CARD_TYPE) BASE_DECK) 
-                {
-                    card_t* temp = (card_t*) malloc(sizeof(card_t));
-                    card_copy(temp, cards[i]);
-                    ll_insert(base_deck, temp);
-                }
-                else
-                {
-                    card_t* temp = (card_t*) malloc(sizeof(card_t));
-                    card_copy(temp, cards[i]);
-                    ll_insert(draw, temp);
-                }
-
-            }
- 
-            room->p2 = p;
-            game_t g = (game_t) {.draw = draw, .base_deck = base_deck};
-            room->game = &g;
+            rooms[room_count]->p2 = p;
         }
 
-        room->count++;
+        thread_args* args = malloc(sizeof(thread_args));
+        args->connfd = connfd;
+        args->room = rooms[room_count];
+
+        if(++(rooms[room_count]->count) == 2)
+        {
+            ++room_count;
+            rooms = (room_t**) realloc(rooms, (room_count+1) * sizeof(room_t)); 
+            rooms[room_count] = (room_t*) malloc(sizeof(room_t));
+            rooms[room_count]->count = 0;
+            rooms[room_count]->game = game;
+        }
 
         // create thread for new client
         ++client_count;
         threads_id = (pthread_t*) realloc(threads_id, client_count * sizeof(pthread_t));
-
-        thread_args* args = malloc(sizeof(thread_args));
-        args->connfd = connfd;
-        args->room = room;
 
         pthread_create(&threads_id[client_count - 1], NULL, client_handler, args);  
     }

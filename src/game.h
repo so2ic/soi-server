@@ -13,6 +13,9 @@ typedef struct
 typedef struct
 {
     int socket, mana, hp, mastery, power;
+
+    // we stock cards only using their id
+    int *hand, *deck;
 } player_t;
 
 typedef struct 

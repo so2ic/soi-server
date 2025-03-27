@@ -284,8 +284,6 @@ int json_to_cards(const char* file_path, card_t** cards)
         }
     }
 
-    printf("File read\n");
-
     free(m_buffer);
     free(m_content);
     m_content = NULL;

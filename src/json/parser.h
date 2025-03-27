@@ -9,20 +9,26 @@
 
 #include "../card.h"
 
+#ifndef OPT_CHAR
+#define OPT_CHAR
 typedef struct {
     char value;
    int has_value;
 } optionnal_char_t;
+#endif
 
 // output : int 0 on success, 1 on failure
 int json_to_cards(const char* file_path, card_t** cards);
-optionnal_char_t peek(int i);
-char* consume(int i);
 
+// TODO
+// change all of this with struct
 // global variables
 extern int m_index;
 extern char* m_buffer;
 extern char* m_content;
+
+optionnal_char_t peek(int i);
+char* consume(int i);
 
 #define _peek(...) _peek_impl ## __VA_OPT__(1)(__VA_ARGS__)
 #define _peek_impl1(...) peek(__VA_ARGS__)

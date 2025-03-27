@@ -13,6 +13,7 @@
 #include "server.h"
 #include "json/parser.h"
 #include "data_structs/linked_list.h"
+#include "utils/dotenv.h"
 
 #define PORT 5087
 #define SA struct sockaddr
@@ -27,6 +28,25 @@ int main(int argc, char** argv)
     int client_count = 0, deck_size = 0, draw_size = 0, room_count = 0;
     struct sockaddr_in sockserve, cli;
     game_t* game = (game_t*) malloc(sizeof(game_t));
+
+    // loading .env variable
+    {
+        char* path = ".";
+        int err = load_env(path);
+        if(err)
+        {
+            perror("can't find .env file");
+            exit(errno);         
+        }
+
+        char* env = get_env("ENV");
+        char* version = get_env("VERSION");
+        if(strcmp(env, "DEBUG") == 0)
+        {
+#define DEBUG
+            printf("SOI2C SERVER DEBUG VERSION %s\n\n", version);
+        }
+    }
 
     // loads cards from the json file
     {

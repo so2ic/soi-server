@@ -115,3 +115,24 @@ int ll_insert_at(ll_t* l, void* data, int place)
 
     return 0;
 }
+
+int ll_get_size(ll_t* l)
+{
+    return l->count;
+}
+
+int ll_copy(ll_t* dest, ll_t* src)
+{
+    if(dest == NULL)
+        return 1;
+
+    for(int i = 0; i < src->count; ++i)
+    {
+        ll_element* el = (ll_element*) malloc(sizeof(ll_element));
+        if(el== NULL)
+            return 1;
+        ll_insert(dest, ll_get_data_at(src, i));
+    }
+
+    return 0;
+}

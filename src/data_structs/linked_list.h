@@ -28,6 +28,8 @@ void* ll_get_tail(ll_t* l);
 void* ll_get_data_at(ll_t* l, int place);
 int ll_remove_at(ll_t* l, int place);
 int ll_insert_at(ll_t* l, void* data, int place);
+int ll_get_size(ll_t* l);
+int ll_copy(ll_t* dest, ll_t* src);
 
 #endif // LINKED_LIST_H
 

@@ -8,6 +8,7 @@
 #include <errno.h>
 #include <pthread.h>
 #include <stdlib.h>
+#include <time.h>
 
 #include "packet.h"
 #include "server.h"
@@ -28,6 +29,8 @@ int main(int argc, char** argv)
     int client_count = 0, deck_size = 0, draw_size = 0, room_count = 0;
     struct sockaddr_in sockserve, cli;
     game_t* game = (game_t*) malloc(sizeof(game_t));
+
+    srand(time(NULL));
 
     // loading .env variable
     {
@@ -95,6 +98,7 @@ int main(int argc, char** argv)
         game->base_deck = base_deck;
         game->draw = draw;
     }
+
 
     rooms[room_count] = (room_t*) malloc(sizeof(room_t));
     rooms[room_count]->count = 0;

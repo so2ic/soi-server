@@ -10,6 +10,30 @@ void* client_handler(void* args)
     thread_args* actual_args = args;
     int connfd = actual_args->connfd;
     room_t* room = actual_args->room;
+    player_t* player = connfd == room->p1->socket ? room->p1 : room->p2;
+    player->hand = ll_init();
+    player->deck = ll_init();
+
+    // giving base deck card to the player
+    {
+        player->deck = (ll_t*) realloc(player->deck, ll_get_size(room->game->base_deck) * sizeof(ll_t));
+        int err = ll_copy(player->deck, room->game->base_deck);
+        if(err)
+        {
+            perror("error while copying linked list");
+            exit(errno);
+        }
+    }
+
+    // draw first five random card
+    {
+        for(int i = 0; i < 5; ++i)
+        {
+            int r = rand() % ll_get_size(player->deck);
+            ll_insert(player->hand, ll_get_data_at(player->deck, r));
+            ll_remove_at(player->deck, r);
+        }     
+    }
 
     // wait for room to be full
     while(room->count < 2) {;;}
@@ -35,8 +59,6 @@ void* client_handler(void* args)
     if(connfd == room->p2->socket)
         room->p2->mastery = 1;
 
-    player_t* player = connfd == room->p1->socket ? room->p1 : room->p2;
-    
     // send their stats to client
     {
         meta_t send_packet = (meta_t) {.type = 0x05, .size = (size_t) player->hp};

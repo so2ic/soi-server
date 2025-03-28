@@ -17,7 +17,6 @@
 
 typedef struct 
 {
-    int connfd;
     room_t* room;
 } thread_args;
 

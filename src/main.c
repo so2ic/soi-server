@@ -18,7 +18,7 @@
 
 #define PORT 5087
 #define SA struct sockaddr
-#define CARD_NUMBER 2
+#define CARD_NUMBER 4
 
 int main(int argc, char** argv)
 {
@@ -26,7 +26,7 @@ int main(int argc, char** argv)
     pthread_t* threads_id = (pthread_t*) malloc(sizeof(pthread_t));
     room_t** rooms = (room_t**) malloc(sizeof(room_t));
     int sockfd, connfd, len;
-    int client_count = 0, deck_size = 0, draw_size = 0, room_count = 0;
+    int room_count = 0;
     struct sockaddr_in sockserve, cli;
     game_t* game = (game_t*) malloc(sizeof(game_t));
 
@@ -61,16 +61,7 @@ int main(int argc, char** argv)
             printf("error parsing");
 
 
-        printf("\n\n----PARSING FINISHED----\n\n");
-
-        for(int i = 0; i < CARD_NUMBER; ++i)
-        {
-            if(cards[i]->type == (CARD_TYPE) BASE_DECK)
-                ++deck_size;
-            else
-                ++draw_size;
-        }
-
+        // printf("\n\n----PARSING FINISHED----\n\n");
     }
 
     // we store cards in a game info object
@@ -78,27 +69,20 @@ int main(int argc, char** argv)
         ll_t* base_deck = ll_init();
         ll_t* draw = ll_init();
 
-        int card_in_deck = 0, card_in_draw = 0;
         for(int i = 0; i < CARD_NUMBER; ++i)
         {
-            if(cards[i]->type == (CARD_TYPE) BASE_DECK) 
+            for(int j = 0; j < cards[i]->rarity; ++j)
             {
-                card_t* temp = (card_t*) malloc(sizeof(card_t));
-                card_copy(temp, cards[i]);
-                ll_insert(base_deck, temp);
-            }
-            else
-            {
-                card_t* temp = (card_t*) malloc(sizeof(card_t));
-                card_copy(temp, cards[i]);
-                ll_insert(draw, temp);
+                if(cards[i]->type == (CARD_TYPE) BASE_DECK) 
+                    ll_insert(base_deck, cards[i]);
+                else
+                    ll_insert(draw, cards[i]);
             }
         } 
 
         game->base_deck = base_deck;
         game->draw = draw;
     }
-
 
     rooms[room_count] = (room_t*) malloc(sizeof(room_t));
     rooms[room_count]->count = 0;
@@ -147,20 +131,15 @@ int main(int argc, char** argv)
         p->hp = 50;
         p->mastery = 0;
         p->power = 0;
-        p->hand = (int*) calloc(5, sizeof(int));
-        p->deck = (int*) calloc(10, sizeof(int));
+        p->hand = ll_init();
+        p->deck = ll_init();
 
         // add new player to the room
         if (rooms[room_count]->count == 0)
             rooms[room_count]->p1 = p;
         else
-        {
             rooms[room_count]->p2 = p;
-        }
 
-        thread_args* args = malloc(sizeof(thread_args));
-        args->connfd = connfd;
-        args->room = rooms[room_count];
 
         if(++(rooms[room_count]->count) == 2)
         {
@@ -169,13 +148,14 @@ int main(int argc, char** argv)
             rooms[room_count] = (room_t*) malloc(sizeof(room_t));
             rooms[room_count]->count = 0;
             rooms[room_count]->game = game;
+
+            thread_args* args = malloc(sizeof(thread_args));
+            args->room = rooms[room_count - 1];
+
+            threads_id = (pthread_t*) realloc(threads_id, room_count * sizeof(pthread_t));
+
+            pthread_create(&threads_id[room_count - 1], NULL, client_handler, args);  
         }
-
-        // create thread for new client
-        ++client_count;
-        threads_id = (pthread_t*) realloc(threads_id, client_count * sizeof(pthread_t));
-
-        pthread_create(&threads_id[client_count - 1], NULL, client_handler, args);  
     }
 
     close(sockfd);

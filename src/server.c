@@ -30,7 +30,6 @@ void* client_handler(void* args)
         }
     }
 
-    printf("debug\n");
     // draw first five random card
     {
         for(int i = 0; i < PLAYER_COUNT; ++i)
@@ -140,6 +139,7 @@ void* client_handler(void* args)
     // game loop
     {
         int actual_player = players[0]->socket;
+        int actual_player_place = 0;
         int is_game_running = 1;
         meta_t send_packet = {.type = 0x02, .size = 0};
         int card_id = -1;
@@ -151,11 +151,23 @@ void* client_handler(void* args)
             send(actual_player, &send_packet, sizeof(meta_t), 0);
             recv(actual_player, &callback, sizeof(meta_t), 0);
 
-            // we receive the id of the card the player choose
-            send_packet.type = 0xFF;
-            recv(actual_player, &card_id, sizeof(int), 0);
-            send(actual_player, &send_packet, sizeof(meta_t), 0);
-            // do treatment depending on the received card
+            bzero(&callback, sizeof(meta_t));
+
+            recv(actual_player, &callback, sizeof(meta_t), 0);
+
+            // we received the played card
+            if(callback.type == 0x03)
+            {
+                int card_id;
+                send_packet.type = 0xff;
+                send(actual_player, &send_packet, sizeof(meta_t), 0);
+                 
+                bzero(&callback, sizeof(meta_t));
+                recv(actual_player, &card_id, sizeof(int), 0);
+                send(actual_player, &send_packet, sizeof(meta_t), 0);
+
+                printf("RECEIVED CARD : %d\n", card_id);
+            }
         } 
         while(is_game_running);
     }

@@ -142,11 +142,11 @@ void* client_handler(void* args)
         int actual_player_place = 0;
         int is_game_running = 1;
         meta_t send_packet = {.type = 0x02, .size = 0};
-        int card_id = -1;
         meta_t callback;
 
         do
         {
+            printf("ACTUAL PLAYER : %d\n", actual_player);
             // ask actual player to play
             send(actual_player, &send_packet, sizeof(meta_t), 0);
             recv(actual_player, &callback, sizeof(meta_t), 0);
@@ -159,14 +159,52 @@ void* client_handler(void* args)
             if(callback.type == 0x03)
             {
                 int card_id;
+                player_t *player = players[actual_player_place];
+
                 send_packet.type = 0xff;
                 send(actual_player, &send_packet, sizeof(meta_t), 0);
                  
                 bzero(&callback, sizeof(meta_t));
                 recv(actual_player, &card_id, sizeof(int), 0);
                 send(actual_player, &send_packet, sizeof(meta_t), 0);
+                bzero(&send_packet, sizeof(meta_t));
+                
+                for(int i = 0; i < ll_get_size(player->hand); ++i)
+                {
+                    // We found the first occurence of our card id
+                    if(((card_t*)ll_get_data_at(player->hand, i))->id == card_id)
+                    {
+                        process_card(ll_get_data_at(player->hand, i), player); 
+                        ll_remove_at(player->hand, i);
 
-                printf("RECEIVED CARD : %d\n", card_id);
+                        send_packet.type = 0x0A;
+                        send_packet.size = (size_t) i;
+                        
+                        send(actual_player, &send_packet, sizeof(meta_t), 0);
+                        recv(actual_player, &callback, sizeof(meta_t), 0);
+                        if(!check_callback(&callback))
+                        {
+                            perror("0x0A remove card"); 
+                            exit(errno);
+                        }
+
+                        bzero(&callback, sizeof(meta_t));
+                        send_packet.type = 0x06;
+                        send_packet.size = (size_t) player->mana;
+                        send(actual_player, &send_packet, sizeof(meta_t), 0);
+                        recv(actual_player, &callback, sizeof(meta_t), 0);
+                        if(!check_callback(&callback))
+                        {
+                            perror("sending mana");
+                            exit(errno); 
+                        }
+
+                        actual_player_place = actual_player_place == 0 ? 1 : 0;
+                        actual_player = players[actual_player_place]->socket;
+
+                        break;
+                    } 
+                }
             }
         } 
         while(is_game_running);
@@ -201,6 +239,17 @@ void send_card(int connfd, card_t* card)
         exit(errno);
     }
     */
+    
+    // send the card id
+    send_packet.type = 0x09;
+    send_packet.size = (size_t) card->id;
+    send(connfd, &send_packet, sizeof(meta_t), 0);
+    recv(connfd, &callback, sizeof(meta_t), 0);
+    if(!check_callback(&callback))
+    {
+        perror("0x09 send id"); 
+        exit(errno);
+    }
 
     // send the card name size
     send_packet.type = 0x04;

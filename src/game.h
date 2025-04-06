@@ -1,21 +1,15 @@
-#ifndef GAME_HPP
-#define GAME_HPP
+#ifndef GAME_H
+#define GAME_H
 
 #include "card.h"
 #include "data_structs/linked_list.h"
+#include "player.h"
 
 typedef struct
 {
    ll_t* draw;
    ll_t* base_deck;
 } game_t;
-
-typedef struct
-{
-    int socket, mana, hp, mastery, power;
-
-    ll_t *hand, *deck;
-} player_t;
 
 typedef struct 
 {
@@ -24,4 +18,4 @@ typedef struct
     game_t* game;
 } room_t;
 
-#endif // GAME_HPP
+#endif // GAME_H

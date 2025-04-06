@@ -16,7 +16,7 @@
 #include "data_structs/linked_list.h"
 #include "utils/dotenv.h"
 
-#define PORT 5088
+#define PORT 5086
 #define SA struct sockaddr
 #define CARD_NUMBER 4
 

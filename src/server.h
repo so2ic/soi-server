@@ -1,5 +1,5 @@
-#ifndef SERVER_HPP
-#define SERVER_HPP
+#ifndef SERVER_H
+#define SERVER_H
 
 #include <stdio.h>
 #include <arpa/inet.h>
@@ -14,6 +14,7 @@
 
 #include "packet.h"
 #include "game.h"
+#include "player.h"
 
 typedef struct 
 {
@@ -24,4 +25,4 @@ void* client_handler(void* args);
 void send_card(int connfd, card_t* card);
 int check_callback(meta_t* callback);
 
-#endif // SERVER_HPP
+#endif // SERVER_H

@@ -16,3 +16,31 @@ void card_copy(card_t* new, card_t* c)
     new->class = c->class;
     */
 }
+
+void process_card(card_t* card, player_t* player)
+{
+    for(int i = 0; i < card->effect_count; ++i)
+    {
+        EFFECT_NEED needed_resource = card->effects[i]->condition.resource;
+        int condition_value = card->effects[i]->condition.value;
+        
+        if(needed_resource == (EFFECT_NEED) MASTERY)
+            if(player->mastery < condition_value)
+                continue;
+
+        if(card->effects[i]->type == (EFFECT_TYPE) BASE_TYPE || card->effects[i]->type == INSTEAD)
+        {
+            int gained_value = card->effects[i]->gain.value;  
+            EFFECT_GAIN gained_resource = card->effects[i]->gain.resource;
+
+            if(gained_resource == (EFFECT_GAIN) MANA)
+                player->mana = gained_value;
+
+            if(gained_resource == (EFFECT_GAIN) POWER)
+                player->power = gained_value;
+
+            // TODO
+            // Implement drawing card  
+        }
+    }
+}

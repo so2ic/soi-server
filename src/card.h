@@ -1,8 +1,10 @@
-#ifndef CARD_HPP
-#define CARD_HPP
+#ifndef CARD_H
+#define CARD_H
 
 #include <stdlib.h>
 #include <string.h>
+
+#include "player.h"
 
 typedef enum CARD_TYPE
 {
@@ -68,5 +70,6 @@ typedef struct card_t
 } card_t;
 
 void card_copy(card_t* new, card_t* c);
+void process_card(card_t* card, player_t* player);
 
 #endif // CARD_HPP

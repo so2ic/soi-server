@@ -10,6 +10,8 @@
  * 0x06 -> send mana
  * 0x07 -> send power
  * 0x08 -> send mastery
+ * 0x09 -> send card id
+ * 0x0A -> remove card
  *
  * Received on callback
  * 0xFF -> ACK

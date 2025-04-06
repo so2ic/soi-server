@@ -24,5 +24,6 @@ typedef struct
 void* client_handler(void* args);
 void send_card(int connfd, card_t* card);
 int check_callback(meta_t* callback);
+void send_resource(int actual_player, int value, char* resource);
 
 #endif // SERVER_H

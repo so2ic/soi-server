@@ -12,6 +12,9 @@
  * 0x08 -> send mastery
  * 0x09 -> send card id
  * 0x0A -> remove card
+ * 0x0B -> end turn
+ * 0x0C -> increase mastery
+ * 0X0D -> deal damage
  *
  * Received on callback
  * 0xFF -> ACK

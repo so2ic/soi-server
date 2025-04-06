@@ -77,48 +77,10 @@ void* client_handler(void* args)
         {
             player_t player = *(players[i]);
             int connfd = player.socket;
-            meta_t send_packet = (meta_t) {.type = 0x05, .size = (size_t) player.hp};
-            meta_t callback;
-            send(connfd, &send_packet, sizeof(meta_t), 0);
-            recv(connfd, &callback, sizeof(meta_t), 0);
-            if(!check_callback(&callback))
-            {
-                perror("sending hp");
-                exit(errno);
-            }
-
-            bzero(&callback, sizeof(meta_t));
-            send_packet.type = 0x06;
-            send_packet.size = (size_t) player.mana;
-            send(connfd, &send_packet, sizeof(meta_t), 0);
-            recv(connfd, &callback, sizeof(meta_t), 0);
-            if(!check_callback(&callback))
-            {
-                perror("sending mana");
-                exit(errno); 
-            }
-
-            bzero(&callback, sizeof(meta_t));
-            send_packet.type = 0x07;
-            send_packet.size = player.power;
-            send(connfd, &send_packet, sizeof(meta_t), 0);
-            recv(connfd, &callback, sizeof(meta_t), 0);
-            if(!check_callback(&callback))
-            {
-                perror("sending power");
-                exit(errno);
-            }
-
-            bzero(&callback, sizeof(meta_t));
-            send_packet.type = 0x08;
-            send_packet.size = player.mastery;
-            send(connfd, &send_packet, sizeof(meta_t), 0);
-            recv(connfd, &callback, sizeof(meta_t), 0);
-            if(!check_callback(&callback))
-            {
-                perror("sending mastery");
-                exit(errno);
-            }
+            send_resource(connfd, player.hp, "hp");
+            send_resource(connfd, player.mastery, "mastery");
+            send_resource(connfd, player.mana, "mana");
+            send_resource(connfd, player.power, "power");
         }
     }
 
@@ -141,12 +103,14 @@ void* client_handler(void* args)
         int actual_player = players[0]->socket;
         int actual_player_place = 0;
         int is_game_running = 1;
-        meta_t send_packet = {.type = 0x02, .size = 0};
+        meta_t send_packet;
         meta_t callback;
 
         do
         {
-            printf("ACTUAL PLAYER : %d\n", actual_player);
+            send_packet.type = 0x02;
+            send_packet.size = 0;
+            
             // ask actual player to play
             send(actual_player, &send_packet, sizeof(meta_t), 0);
             recv(actual_player, &callback, sizeof(meta_t), 0);
@@ -174,7 +138,9 @@ void* client_handler(void* args)
                     // We found the first occurence of our card id
                     if(((card_t*)ll_get_data_at(player->hand, i))->id == card_id)
                     {
-                        process_card(ll_get_data_at(player->hand, i), player); 
+                        // TODO
+                        // handle different resource changes
+                        EFFECT_GAIN gain = process_card(ll_get_data_at(player->hand, i), player); 
                         ll_remove_at(player->hand, i);
 
                         send_packet.type = 0x0A;
@@ -189,22 +155,53 @@ void* client_handler(void* args)
                         }
 
                         bzero(&callback, sizeof(meta_t));
-                        send_packet.type = 0x06;
-                        send_packet.size = (size_t) player->mana;
-                        send(actual_player, &send_packet, sizeof(meta_t), 0);
-                        recv(actual_player, &callback, sizeof(meta_t), 0);
-                        if(!check_callback(&callback))
-                        {
-                            perror("sending mana");
-                            exit(errno); 
-                        }
-
-                        actual_player_place = actual_player_place == 0 ? 1 : 0;
-                        actual_player = players[actual_player_place]->socket;
-
+                        if(gain == (EFFECT_GAIN) MANA)
+                            send_resource(actual_player, players[actual_player_place]->mana, "mana");
+                        else if(gain == (EFFECT_GAIN) POWER)
+                            send_resource(actual_player, players[actual_player_place]->power, "power");
                         break;
                     } 
                 }
+            }
+            else if(callback.type == 0x0B)
+            {
+                send_packet.type = 0xFF;
+
+                send(actual_player, &send_packet, sizeof(meta_t), 0);
+
+                actual_player_place = actual_player_place == 0 ? 1 : 0;
+                actual_player = players[actual_player_place]->socket;
+
+                bzero(&callback, sizeof(meta_t));
+            }
+            else if(callback.type == 0x0C)
+            {
+                send_packet.type = 0xFF;
+
+                send(actual_player, &send_packet, sizeof(meta_t), 0);
+
+                // Do I need to handle differently if mana == 0 ?
+
+                if(players[actual_player_place]->mana > 0)
+                {
+                    players[actual_player_place]->mastery += 1;
+                    players[actual_player_place]->mana -= 1; 
+                    send_resource(actual_player, players[actual_player_place]->mana, "mana");
+                    send_resource(actual_player, players[actual_player_place]->mastery, "mastery");
+                }
+                bzero(&callback, sizeof(meta_t));
+            }
+            else if(callback.type == 0x0D)
+            {
+                send_packet.type = 0xFF;
+
+                send(actual_player, &send_packet, sizeof(meta_t), 0);
+
+                player_t* en = players[actual_player_place == 0 ? 1 : 0];
+                en->hp -= (int) callback.size;
+                send_resource(en->socket, en->hp, "hp");
+
+                bzero(&callback, sizeof(meta_t));
             }
         } 
         while(is_game_running);
@@ -278,3 +275,35 @@ int check_callback(meta_t* callback)
 {
     return (callback->type == 0xFF) ? 1 : 0;
 }
+
+void send_resource(int actual_player, int value, char* resource)
+{
+    meta_t send_packet;
+    meta_t callback;
+    send_packet.size = (size_t) value;
+    bzero(&callback, sizeof(meta_t));
+
+    if(strcmp(resource, "mana") == 0)
+        send_packet.type = 0x06;
+    else if(strcmp(resource, "mastery") == 0)
+        send_packet.type = 0x08;
+    else if(strcmp(resource, "hp") == 0)
+        send_packet.type = 0x05;
+    else if(strcmp(resource, "power") == 0)
+        send_packet.type = 0x07;
+    else
+    {
+        perror("unknown resource");
+        exit(errno);
+    }
+
+    send(actual_player, &send_packet, sizeof(meta_t), 0);
+    recv(actual_player, &callback, sizeof(meta_t), 0);
+    if(!check_callback(&callback))
+    {
+        perror("sending resource");
+        exit(errno); 
+    }
+
+}
+

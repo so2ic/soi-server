@@ -70,6 +70,6 @@ typedef struct card_t
 } card_t;
 
 void card_copy(card_t* new, card_t* c);
-void process_card(card_t* card, player_t* player);
+EFFECT_GAIN process_card(card_t* card, player_t* player);
 
 #endif // CARD_HPP

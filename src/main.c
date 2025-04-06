@@ -16,7 +16,7 @@
 #include "data_structs/linked_list.h"
 #include "utils/dotenv.h"
 
-#define PORT 5086
+#define PORT 5090
 #define SA struct sockaddr
 #define CARD_NUMBER 4
 
@@ -131,6 +131,9 @@ int main(int argc, char** argv)
         p->hp = 50;
         p->mastery = 0;
         p->power = 0;
+#ifdef DEBUG
+        p->power = 50;
+#endif
         p->hand = ll_init();
         p->deck = ll_init();
 

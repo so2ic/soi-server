@@ -75,11 +75,20 @@ int json_to_cards(const char* file_path, card_t** cards)
                     cards[deck_size]->rarity = atoi(m_buffer);
 
             if(strcmp(last_token,"mana") == 0)
-                    cards[deck_size]->effects[effect_count]->gain.value = atoi(m_buffer);
+            {
+                cards[deck_size]->effects[effect_count]->gain.resource = (EFFECT_GAIN) MANA;
+                cards[deck_size]->effects[effect_count]->gain.value = atoi(m_buffer);
+            }
             if(strcmp(last_token,"power") == 0)
-                    cards[deck_size]->effects[effect_count]->gain.value = atoi(m_buffer);
+            {
+                cards[deck_size]->effects[effect_count]->gain.resource = (EFFECT_GAIN) POWER;
+                cards[deck_size]->effects[effect_count]->gain.value = atoi(m_buffer);
+            }
             if(strcmp(last_token,"draw") == 0)
-                    cards[deck_size]->effects[effect_count]->gain.value = atoi(m_buffer);
+            {
+                cards[deck_size]->effects[effect_count]->gain.resource = (EFFECT_GAIN) DRAW;
+                cards[deck_size]->effects[effect_count]->gain.value = atoi(m_buffer);
+            }
 
             free(m_buffer);
             free(last_token);

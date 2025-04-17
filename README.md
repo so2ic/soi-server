@@ -1,6 +1,6 @@
-# SOI2C SERVER
+# SO2IC SERVER
 
-server for the soi2c implementation
+server for the so2ic implementation
 
 ## Purpose
 

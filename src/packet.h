@@ -16,6 +16,7 @@
  * 0x0C -> increase mastery
  * 0x0D -> deal damage
  * 0x0E -> empty hand
+ * 0x0F -> reset client
  *
  * Received on callback
  * 0xFF -> ACK

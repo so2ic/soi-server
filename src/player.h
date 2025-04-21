@@ -7,7 +7,7 @@ typedef struct
 {
     int socket, mana, hp, mastery, power;
 
-    ll_t *hand, *deck;
+    ll_t *hand, *deck, *discard;
 } player_t;
 
 #endif // PLAYER_H

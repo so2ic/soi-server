@@ -141,6 +141,7 @@ void* client_handler(void* args)
                         // TODO
                         // handle different resource changes
                         EFFECT_GAIN gain = process_card(ll_get_data_at(player->hand, i), player); 
+                        ll_insert(player->discard, ll_get_data_at(player->hand, i));
                         ll_remove_at(player->hand, i);
 
                         send_packet.type = 0x0A;
@@ -165,9 +166,48 @@ void* client_handler(void* args)
             }
             else if(callback.type == 0x0B)
             {
+                player_t* player = players[actual_player_place];
                 send_packet.type = 0xFF;
 
                 send(actual_player, &send_packet, sizeof(meta_t), 0);
+
+                // discard every card left in hand
+                if(ll_get_size(player->hand) > 0)
+                {
+                    meta_t callback;
+                    ll_copy(player->discard, player->hand);
+                    ll_empty(player->hand); 
+                    send_packet.type = 0x0E;
+                    send(actual_player, &send_packet, sizeof(meta_t), 0);
+                    recv(actual_player, &callback, sizeof(meta_t), 0);
+                    if(!check_callback(&callback))
+                    {
+                        perror("Error on empty card 0x0E");
+                        exit(errno);
+                    }
+                }
+
+                // redraw hand
+                while(ll_get_size(player->hand) != 5)
+                {
+                    if(ll_get_size(player->deck) > 0)
+                    {
+                        int r = rand() % ll_get_size(player->deck);
+                        ll_insert(player->hand, ll_get_data_at(player->deck, r));
+                        ll_remove_at(player->deck, r);
+                    }
+                    else
+                    {
+                        ll_copy(player->deck, player->discard);
+                        ll_empty(player->discard);
+                    }
+                }
+
+                for(int j = 0; j < ll_get_size(player->hand); ++j)
+                {
+                    card_t* card = (card_t*) ll_get_data_at(player->hand, j);
+                    send_card(actual_player, card);
+                }
 
                 actual_player_place = actual_player_place == 0 ? 1 : 0;
                 actual_player = players[actual_player_place]->socket;

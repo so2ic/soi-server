@@ -14,7 +14,8 @@
  * 0x0A -> remove card
  * 0x0B -> end turn
  * 0x0C -> increase mastery
- * 0X0D -> deal damage
+ * 0x0D -> deal damage
+ * 0x0E -> empty hand
  *
  * Received on callback
  * 0xFF -> ACK

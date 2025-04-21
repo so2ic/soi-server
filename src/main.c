@@ -16,7 +16,7 @@
 #include "data_structs/linked_list.h"
 #include "utils/dotenv.h"
 
-#define PORT 5090
+#define PORT 5093
 #define SA struct sockaddr
 #define CARD_NUMBER 4
 
@@ -136,6 +136,7 @@ int main(int argc, char** argv)
 #endif
         p->hand = ll_init();
         p->deck = ll_init();
+        p->discard = ll_init();
 
         // add new player to the room
         if (rooms[room_count]->count == 0)

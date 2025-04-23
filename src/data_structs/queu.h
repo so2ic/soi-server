@@ -45,7 +45,7 @@ struct queue_element
 
 typedef struct
 {
-    queue_element_t *head, *tail;
+    queue_element *head, *tail;
     size_t size;
     QUEUE_MUTEX_TYPE mutex;
 } queue_t;
@@ -75,7 +75,7 @@ QUEUE_LIB int queue_add(queue_t* q, void* obj)
 
     QUEUE_MUTEX_LOCK(q->mutex);
 
-    queue_elemetn* el;
+    queue_element* el;
 
     if((el = (queue_element*) QUEUE_MALLOC(sizeof(queue_element))) == NULL)
     {
@@ -85,7 +85,7 @@ QUEUE_LIB int queue_add(queue_t* q, void* obj)
 
     el->object = obj;
 
-    if(q.size == 0)
+    if(q->size == 0)
     {
         el->prev = NULL;
         q->head = el;
@@ -96,7 +96,7 @@ QUEUE_LIB int queue_add(queue_t* q, void* obj)
     }
 
     q->tail = el;
-    q.size++;
+    q->size++;
 
     QUEUE_MUTEX_UNLOCK(q->mutex);
     return 1;
@@ -107,10 +107,10 @@ QUEUE_LIB int queue_free(queue_t* q)
     if(q == NULL)
         return 0;
 
-    queu_element* l = q->head;
+    queue_element* l = q->head;
     for(int i = 0; i < q->size; ++i)
     {
-        queu_element* n = l->prev;
+        queue_element* n = l->prev;
         QUEUE_FREE(l);
         l = n;
     }
@@ -130,9 +130,18 @@ QUEUE_LIB void* queue_dequeue(queue_t* q)
 
     QUEUE_MUTEX_LOCK(q->mutex);
 
-    queue_element* el = q->front;
-    void* obj = el->obj;
-    q->front = el->prev;
+    queue_element* el = q->head;
+    if(!el)
+    {
+        QUEUE_MUTEX_UNLOCK(q->mutex);
+        return NULL;
+    }
+
+    void* obj = el->object;
+    q->head = el->prev;
+
+    if(q->head == NULL)
+        q->tail = NULL;
 
     QUEUE_FREE(el);
     QUEUE_MUTEX_UNLOCK(q->mutex);
@@ -147,3 +156,5 @@ QUEUE_LIB void* queue_dequeue(queue_t* q)
 #endif // __cplusplus
 
 #endif // QUEUE_H
+
+

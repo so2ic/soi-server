@@ -123,6 +123,23 @@ QUEUE_LIB int queue_free(queue_t* q)
     return 1;
 }
 
+QUEUE_LIB void* queue_dequeue(queue_t* q)
+{
+    if(q == NULL)
+        return NULL;
+
+    QUEUE_MUTEX_LOCK(q->mutex);
+
+    queue_element* el = q->front;
+    void* obj = el->obj;
+    q->front = el->prev;
+
+    QUEUE_FREE(el);
+    QUEUE_MUTEX_UNLOCK(q->mutex);
+
+    return obj;
+}
+
 #endif // QUEUE_LIB_IMPLEMENTATION
 
 #ifdef __cplusplus

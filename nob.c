@@ -4,51 +4,47 @@
 #define BUILD_DIR "build/"
 #define SRC_DIR "src/"
 
-int main(int argc, char **argv) {
+void locate_c_files(Nob_Cmd* cmd, const char* path)
+{
+    Nob_File_Paths children = {0};
+    
+    if (!nob_read_entire_dir(path, &children)) return;
+    
+    for (size_t i = 0; i < children.count; ++i) 
+    {
+        if (*children.items[i] != '.') 
+        {
+            nob_log(NOB_INFO, "WATCHING %s", children.items[i]);
+            Nob_String_Builder full_path = {0};
+            if (nob_sv_end_with(nob_sv_from_cstr(children.items[i]), ".c"))
+            {
+                nob_sb_appendf(&full_path, "%s%s", path, children.items[i]);
+                nob_cmd_append(cmd, full_path.items);
+            }
+            else if (nob_sv_end_with(nob_sv_from_cstr(children.items[i]), ".h") || nob_sv_end_with(nob_sv_from_cstr(children.items[i]), ".json"))
+              continue;
+            else
+            {
+                nob_sb_appendf(&full_path, "%s%s/", path, children.items[i]);
+                locate_c_files(cmd, full_path.items); 
+            }
+        }
+    }
+}
+
+int main(int argc, char **argv) 
+{
     NOB_GO_REBUILD_URSELF(argc, argv);
 
     if (!nob_mkdir_if_not_exists(BUILD_DIR)) return 1;
 
-    Nob_Vector sources = {0};
-    nob_find_files_recursive(&sources, SRC_DIR, nob_sv_from_cstr(".c"));
+    Nob_Cmd cmd = {0};
 
-    Nob_Vector objects = {0};
+    nob_cmd_append(&cmd, "gcc", "-Wall", "-Wextra", "-g", "-o", BUILD_DIR"soi-server");
 
-    for (size_t i = 0; i < sources.count; ++i) {
-        Nob_String_View src = sources.items[i];
+    locate_c_files(&cmd, SRC_DIR);
 
-        Nob_String_Builder obj_path = {0};
-        nob_sb_append_cstr(&obj_path, BUILD_DIR);
-        nob_sv_append_path(&obj_path, src);
-        nob_sb_change_extension(&obj_path, ".o");
-
-        nob_mkdir_parent_dirs(obj_path.items);
-
-        Nob_Cmd cmd = {0};
-        nob_cmd_append(&cmd, "gcc", "-Wall", "-Wextra", "-g");
-        nob_cmd_append(&cmd, "-c", src.data, "-o", obj_path.items);
-
-        nob_log(NOB_INFO, "Compiling %s", src.data);
-        if (!nob_cmd_run_sync(cmd)) {
-            nob_log(NOB_ERROR, "Failed to compile: %s", src.data);
-            return 1;
-        }
-
-        nob_da_append(&objects, nob_sv_from_cstr(obj_path.items));
-        nob_sb_free(&obj_path);
-    }
-
-    Nob_Cmd link_cmd = {0};
-    nob_cmd_append(&link_cmd, "gcc", "-o", BUILD_DIR"soi-server");
-    for (size_t i = 0; i < objects.count; ++i) {
-        nob_cmd_append(&link_cmd, objects.items[i].data);
-    }
-
-    nob_log(NOB_INFO, "Linking to bin/exe");
-    if (!nob_cmd_run_sync(link_cmd)) {
-        nob_log(NOB_ERROR, "Linking failed");
-        return 1;
-    }
+    if (!nob_cmd_run_sync_and_reset(&cmd)) return 1;
 
     return 0;
 }

@@ -53,7 +53,7 @@ int main(int argc, char** argv)
 
     // loads cards from the json file
     {
-        char* file_path = "/Users/vincentastolfi/git/soi/soi-server/src/card/cards.json";
+        char* file_path = "./src/card/cards.json";
         // only works if we already know how much cards are describe in json file
         cards = (card_t**) calloc(CARD_NUMBER, sizeof(card_t));
         int err = json_to_cards(file_path, cards);

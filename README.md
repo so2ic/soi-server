@@ -11,13 +11,27 @@ Finally, if I can use those 'bots' to make some probability about the game like 
 
 ## Requirement
 
-- *make*
-- *clang* / *gcc*
+- *gcc*
 
 ## Usage
 
-- build using `make`
-- run `./bin/exe`
+I've recently implement the [nob building tool)(https://github.com/tsoding/nob.h) \
+Since this add, to build this project you just have too :
+
+```sh
+gcc -o nob nob.c
+./build/soi-server
+```
+
+This also works with clang, just compile nob.c using clang and change the following line in nob.c
+
+```c
+nob_cmd_append(&cmd, "gcc", "-Wall", "-Wextra", "-g", "-o", BUILD_DIR"soi-server");
+
+// use the c compiler you want
+nob_cmd_append(&cmd, "clang", "-Wall", "-Wextra", "-g", "-o", BUILD_DIR"soi-server");
+nob_cmd_append(&cmd, "cc", "-Wall", "-Wextra", "-g", "-o", BUILD_DIR"soi-server");
+```
 
 ## Author 
 

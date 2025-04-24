@@ -20,8 +20,11 @@ Since this add, to build this project you just have too :
 
 ```sh
 gcc -o nob nob.c
+./nob
 ./build/soi-server
 ```
+
+After any code modifications, just rerun ./nob to rebuild
 
 This also works with clang, just compile nob.c using clang and change the following line in nob.c
 

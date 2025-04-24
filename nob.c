@@ -43,6 +43,8 @@ int main(int argc, char **argv)
     nob_cmd_append(&cmd, "gcc", "-Wall", "-Wextra", "-g", "-o", BUILD_DIR"soi-server");
 
     locate_c_files(&cmd, SRC_DIR);
+    
+    nob_cmd_append(&cmd, "-lpthread");
 
     if (!nob_cmd_run_sync_and_reset(&cmd)) return 1;
 

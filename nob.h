@@ -1,4 +1,4 @@
-/* nob - v1.20.1 - Public Domain - https://github.com/tsoding/nob.h
+/* nob - v1.20.2 - Public Domain - https://github.com/tsoding/nob.h
 
    This library is the next generation of the [NoBuild](https://github.com/tsoding/nobuild) idea.
 
@@ -485,6 +485,7 @@ int nob_needs_rebuild1(const char *output_path, const char *input_path);
 int nob_file_exists(const char *file_path);
 const char *nob_get_current_dir_temp(void);
 bool nob_set_current_dir(const char *path);
+bool nob_find_source_in_dir_recursively(Nob_Cmd *cmd, const char *path);
 
 // TODO: we should probably document somewhere all the compiler we support
 
@@ -922,7 +923,7 @@ Nob_Proc nob_cmd_run_async_redirect(Nob_Cmd cmd, Nob_Cmd_Redirect redirect)
     nob_sb_free(sb);
 
     if (!bSuccess) {
-        nob_log(NOB_ERROR, "Could not create child process: %s", nob_win32_error_message(GetLastError()));
+        nob_log(NOB_ERROR, "Could not create child process for %s: %s", cmd.items[0], nob_win32_error_message(GetLastError()));
         return NOB_INVALID_PROC;
     }
 
@@ -965,7 +966,7 @@ Nob_Proc nob_cmd_run_async_redirect(Nob_Cmd cmd, Nob_Cmd_Redirect redirect)
         nob_cmd_append(&cmd_null, NULL);
 
         if (execvp(cmd.items[0], (char * const*) cmd_null.items) < 0) {
-            nob_log(NOB_ERROR, "Could not exec child process: %s", strerror(errno));
+            nob_log(NOB_ERROR, "Could not exec child process for %s: %s", cmd.items[0], strerror(errno));
             exit(1);
         }
         NOB_UNREACHABLE("nob_cmd_run_async_redirect");
@@ -1792,6 +1793,36 @@ bool nob_set_current_dir(const char *path)
 #endif // _WIN32
 }
 
+bool nob_find_source_in_dir_recursively(Nob_Cmd *cmd, const char *path)
+{
+    Nob_File_Paths children = {0};
+    
+    if (!nob_read_entire_dir(path, &children)) {
+        nob_log(NOB_ERROR, "could not read dir %s : %s", path, strerror(errno));
+        return false;
+    }
+    
+    for (size_t i = 0; i < children.count; ++i) {
+        if (*children.items[i] != '.') {
+            Nob_String_Builder full_path = {0};
+            if (nob_sv_end_with(nob_sv_from_cstr(children.items[i]), ".c")) {
+                nob_sb_appendf(&full_path, "%s%s", path, children.items[i]);
+                nob_cmd_append(cmd, full_path.items);
+            } else {
+                nob_sb_appendf(&full_path, "%s%s/", path, children.items[i]);
+                Nob_File_Type type = nob_get_file_type(full_path.items);
+                if(type == NOB_FILE_DIRECTORY)
+                    nob_find_source_in_dir_recursively(cmd, full_path.items);
+                else {
+                    continue;
+                }
+            }
+        }
+    }
+
+    return true;
+}
+
 // minirent.h SOURCE BEGIN ////////////////////////////////////////
 #ifdef _WIN32
 struct DIR
@@ -1994,6 +2025,7 @@ int closedir(DIR *dirp)
 /*
    Revision history:
 
+     1.20.2 (2025-04-24) Report the program name that failed to start up in nob_cmd_run_async_redirect() (By @rexim)
      1.20.1 (2025-04-16) Use vsnprintf() in nob_sb_appendf() instead of vsprintf() (By @LainLayer)
      1.20.0 (2025-04-16) Introduce nob_cc(), nob_cc_flags(), nob_cc_inputs(), nob_cc_output() macros (By @rexim)
      1.19.0 (2025-03-25) Add nob_procs_append_with_flush() (By @rexim and @anion155)

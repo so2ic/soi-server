@@ -4,33 +4,6 @@
 #define BUILD_DIR "build/"
 #define SRC_DIR "src/"
 
-void locate_c_files(Nob_Cmd* cmd, const char* path)
-{
-    Nob_File_Paths children = {0};
-    
-    if (!nob_read_entire_dir(path, &children)) return;
-    
-    for (size_t i = 0; i < children.count; ++i) 
-    {
-        if (*children.items[i] != '.') 
-        {
-            Nob_String_Builder full_path = {0};
-            if (nob_sv_end_with(nob_sv_from_cstr(children.items[i]), ".c"))
-            {
-                nob_sb_appendf(&full_path, "%s%s", path, children.items[i]);
-                nob_cmd_append(cmd, full_path.items);
-            }
-            else if (nob_sv_end_with(nob_sv_from_cstr(children.items[i]), ".h") || nob_sv_end_with(nob_sv_from_cstr(children.items[i]), ".json"))
-              continue;
-            else
-            {
-                nob_sb_appendf(&full_path, "%s%s/", path, children.items[i]);
-                locate_c_files(cmd, full_path.items); 
-            }
-        }
-    }
-}
-
 int main(int argc, char **argv) 
 {
     NOB_GO_REBUILD_URSELF(argc, argv);
@@ -41,7 +14,12 @@ int main(int argc, char **argv)
 
     nob_cmd_append(&cmd, "gcc", "-Wall", "-Wextra", "-g", "-o", BUILD_DIR"soi-server");
 
-    locate_c_files(&cmd, SRC_DIR);
+    Nob_String_Builder sources = {0};
+    if(!nob_find_source_in_dir_recursively(&cmd, SRC_DIR))
+    {
+        nob_log(NOB_ERROR, "could not nob_find_source_in_dir_recursively with %s", SRC_DIR);
+        return 1;
+    }
     
     nob_cmd_append(&cmd, "-lpthread");
 

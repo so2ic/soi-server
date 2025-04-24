@@ -15,7 +15,7 @@ Finally, if I can use those 'bots' to make some probability about the game like 
 
 ## Usage
 
-I've recently implement the [nob building tool)(https://github.com/tsoding/nob.h) \
+I've recently implement the [nob building tool](https://github.com/tsoding/nob.h) \
 Since this add, to build this project you just have too :
 
 ```sh

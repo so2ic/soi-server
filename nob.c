@@ -14,7 +14,6 @@ void locate_c_files(Nob_Cmd* cmd, const char* path)
     {
         if (*children.items[i] != '.') 
         {
-            nob_log(NOB_INFO, "WATCHING %s", children.items[i]);
             Nob_String_Builder full_path = {0};
             if (nob_sv_end_with(nob_sv_from_cstr(children.items[i]), ".c"))
             {

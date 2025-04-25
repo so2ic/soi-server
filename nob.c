@@ -15,9 +15,9 @@ int main(int argc, char **argv)
     nob_cmd_append(&cmd, "gcc", "-Wall", "-Wextra", "-g", "-o", BUILD_DIR"soi-server");
 
     Nob_String_Builder sources = {0};
-    if(!nob_find_source_in_dir_recursively(&cmd, SRC_DIR))
+    if(!nob_find_sources_in_dir_recursively(&cmd, SRC_DIR))
     {
-        nob_log(NOB_ERROR, "could not nob_find_source_in_dir_recursively with %s", SRC_DIR);
+        nob_log(NOB_ERROR, "could not nob_find_sources_in_dir_recursively with %s", SRC_DIR);
         return 1;
     }
     

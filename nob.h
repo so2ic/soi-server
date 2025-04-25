@@ -485,7 +485,7 @@ int nob_needs_rebuild1(const char *output_path, const char *input_path);
 int nob_file_exists(const char *file_path);
 const char *nob_get_current_dir_temp(void);
 bool nob_set_current_dir(const char *path);
-bool nob_find_source_in_dir_recursively(Nob_Cmd *cmd, const char *path);
+bool nob_find_sources_in_dir_recursively(Nob_Cmd *cmd, const char *path);
 
 // TODO: we should probably document somewhere all the compiler we support
 
@@ -1793,7 +1793,7 @@ bool nob_set_current_dir(const char *path)
 #endif // _WIN32
 }
 
-bool nob_find_source_in_dir_recursively(Nob_Cmd *cmd, const char *path)
+bool nob_find_sources_in_dir_recursively(Nob_Cmd *cmd, const char *path)
 {
     Nob_File_Paths children = {0};
     
@@ -1812,7 +1812,7 @@ bool nob_find_source_in_dir_recursively(Nob_Cmd *cmd, const char *path)
                 nob_sb_appendf(&full_path, "%s%s/", path, children.items[i]);
                 Nob_File_Type type = nob_get_file_type(full_path.items);
                 if(type == NOB_FILE_DIRECTORY)
-                    nob_find_source_in_dir_recursively(cmd, full_path.items);
+                    nob_find_sources_in_dir_recursively(cmd, full_path.items);
                 else {
                     continue;
                 }

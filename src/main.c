@@ -16,6 +16,9 @@
 #include "data_structs/linked_list.h"
 #include "utils/dotenv.h"
 
+#define QUEUE_LIB_IMPLEMENTATION
+#include "data_structs/queue.h"
+
 #define PORT 5093
 #define SA struct sockaddr
 #define CARD_NUMBER 4
@@ -29,6 +32,7 @@ int main(int argc, char** argv)
     int room_count = 0;
     struct sockaddr_in sockserve, cli;
     game_t* game = (game_t*) malloc(sizeof(game_t));
+    queue_t* queue = queue_init();
 
     srand(time(NULL));
 
@@ -125,6 +129,7 @@ int main(int argc, char** argv)
             return 1;
         }
         printf("New client connected : %d\n", connfd);
+        queue_add(queue, p);
 
         p->socket = connfd;
         p->mana = 0;
@@ -138,15 +143,12 @@ int main(int argc, char** argv)
         p->deck = ll_init();
         p->discard = ll_init();
 
-        // add new player to the room
-        if (rooms[room_count]->count == 0)
-            rooms[room_count]->p1 = p;
-        else
-            rooms[room_count]->p2 = p;
-
-
-        if(++(rooms[room_count]->count) == 2)
+        // two player are waiting => we place them in a room
+        if(queue->size == 2)
         {
+            rooms[room_count]->p1 = (player_t*) queue_dequeue(queue);
+            rooms[room_count]->p2 = (player_t*) queue_dequeue(queue);
+
             ++room_count;
             rooms = (room_t**) realloc(rooms, (room_count+1) * sizeof(room_t)); 
             rooms[room_count] = (room_t*) malloc(sizeof(room_t));

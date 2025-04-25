@@ -1,3 +1,79 @@
+/*
+------------------------------------------------------------------------------
+QUEUE LIB FOR C - ASTOLFI Vincent 2025
+
+Usage:
+
+    #define QUEUE_LIB_IMPLEMENTATION
+    // if no thread concurrencie in your program
+    #define QUEUE_NO_THREADING
+    #include "queue.h"
+
+API:
+
+    queue_t* queue_init();
+    int queue_add(queue_t* q, void* obj);
+    int queue_add_many(queue_t* q, ...);
+    int queue_free(queue_t* q);
+    void* queue_dequeue(queue_t* q);
+
+RETURNS:
+
+    - queue_init()
+    return the new created queue, NULL on error
+
+    - queue_add()
+    return 1 on success, 0 on error
+
+    - queue_free()
+    return 1 on success, 0 on error
+
+    - queue_dequeue()
+    return front object of the queue, NULL on error
+
+EXAMPLE:
+
+    ```c
+    #define QUEUE_LIB_IMPLEMENTATION
+    #define QUEUE_NO_THREADING
+    #include "queue.h"
+
+    #include <stdlib.h>
+    #include <stdio.h>
+
+    int main(void)
+    {
+        char* foo = "foo";
+        char* bar = "bar";
+        char* baz = "baz";
+        char* qux = "qux";
+
+        queue_t* queue;
+
+        if((queue = queue_init()) == NULL)
+            return 1;
+
+        if(!queue_add(queue, foo))
+            return 1;
+
+        if(!queue_add_many(queue, bar, baz, qux))
+            return 1;
+
+        char* c;
+        if((c = queue_dequeue(queue)) == NULL)
+            return 1;
+
+        printf("EXPECT : foo , GET : %s \n", c);
+
+        if(!queue_free(queue))
+            return 1;
+            
+        return 0;
+    }
+    ```
+------------------------------------------------------------------------------
+*/
+
 #ifndef QUEUE_H
 #define QUEUE_H
 
@@ -25,6 +101,8 @@
     #include <stdlib.h>
     #define QUEUE_FREE free
 #endif // QUEUE_FREE
+
+#include <stdarg.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -57,9 +135,14 @@ QUEUE_LIB void* queue_dequeue(queue_t* q);
 
 #ifdef QUEUE_LIB_IMPLEMENTATION
 
+#define queue_add_many(q, ...) queue_add_many_null(q, __VA_ARGS__, NULL)
+
 QUEUE_LIB queue_t* queue_init()
 {
     queue_t* q = (queue_t*) QUEUE_MALLOC(sizeof(queue_t));
+    if(q == NULL)
+        return NULL;
+    
     q->size = 0;
     q->head = NULL;
     q->tail = NULL;
@@ -102,13 +185,32 @@ QUEUE_LIB int queue_add(queue_t* q, void* obj)
     return 1;
 }
 
+static int queue_add_many_null(queue_t* q, ...)
+{
+    if (!q) return 0;
+
+    va_list args;
+    va_start(args, q);
+
+    void* obj;
+    while ((obj = va_arg(args, void*)) != NULL) {
+        if (!queue_add(q, obj)) {
+            va_end(args);
+            return 0;
+        }
+    }
+
+    va_end(args);
+    return 1;
+}
+
 QUEUE_LIB int queue_free(queue_t* q)
 {
     if(q == NULL)
         return 0;
 
     queue_element* l = q->head;
-    for(int i = 0; i < q->size; ++i)
+    while(l != NULL)
     {
         queue_element* n = l->prev;
         QUEUE_FREE(l);
@@ -119,7 +221,7 @@ QUEUE_LIB int queue_free(queue_t* q)
     q->head = NULL;
     q->tail = NULL;
     QUEUE_MUTEX_DESTROY(q->mutex);
-    free(q);
+    QUEUE_FREE(q);
     return 1;
 }
 
@@ -156,5 +258,4 @@ QUEUE_LIB void* queue_dequeue(queue_t* q)
 #endif // __cplusplus
 
 #endif // QUEUE_H
-
 

@@ -14,7 +14,6 @@ typedef struct
 typedef struct 
 {
     player_t *p1, *p2;
-    int count;
     game_t* game;
 } room_t;
 

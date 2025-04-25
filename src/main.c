@@ -19,7 +19,7 @@
 #define QUEUE_LIB_IMPLEMENTATION
 #include "data_structs/queue.h"
 
-#define PORT 5093
+#define PORT 5094
 #define SA struct sockaddr
 #define CARD_NUMBER 4
 
@@ -89,7 +89,6 @@ int main(int argc, char** argv)
     }
 
     rooms[room_count] = (room_t*) malloc(sizeof(room_t));
-    rooms[room_count]->count = 0;
     rooms[room_count]->game = game;
 
     sockfd = socket(PF_INET, SOCK_STREAM, 0);
@@ -149,18 +148,19 @@ int main(int argc, char** argv)
             rooms[room_count]->p1 = (player_t*) queue_dequeue(queue);
             rooms[room_count]->p2 = (player_t*) queue_dequeue(queue);
 
-            ++room_count;
-            rooms = (room_t**) realloc(rooms, (room_count+1) * sizeof(room_t)); 
-            rooms[room_count] = (room_t*) malloc(sizeof(room_t));
-            rooms[room_count]->count = 0;
-            rooms[room_count]->game = game;
-
             thread_args* args = malloc(sizeof(thread_args));
-            args->room = rooms[room_count - 1];
+            args->room = rooms[room_count];
 
             threads_id = (pthread_t*) realloc(threads_id, room_count * sizeof(pthread_t));
 
-            pthread_create(&threads_id[room_count - 1], NULL, client_handler, args);  
+            int err = pthread_create(&threads_id[room_count - 1], NULL, client_handler, args);  
+            if (err != 0) 
+                fprintf(stderr, "Failed to create thread: %s\n", strerror(err));
+            
+            ++room_count;
+            rooms = (room_t**) realloc(rooms, (room_count+1) * sizeof(room_t)); 
+            rooms[room_count] = (room_t*) malloc(sizeof(room_t));
+            rooms[room_count]->game = game;
         }
     }
 

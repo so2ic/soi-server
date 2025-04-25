@@ -43,9 +43,6 @@ void* client_handler(void* args)
         }
     }
 
-    // wait for room to be full
-    while(room->count < 2) {;;}
-
     // inform player that room is full
     {
         for(int i = 0; i < PLAYER_COUNT; ++i)

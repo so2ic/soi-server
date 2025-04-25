@@ -109,7 +109,7 @@ char* get_env(char* key)
 
 optionnal_char_t dot_peek(int i)
 {
-    if(md_index + i >= strlen(md_content))
+    if(md_index + i >= (int) strlen(md_content))
         return (optionnal_char_t) {.has_value = 0};
     else
         return (optionnal_char_t) {.value = md_content[md_index + i], .has_value = 1};

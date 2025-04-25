@@ -303,7 +303,7 @@ int json_to_cards(const char* file_path, card_t** cards)
 
 optionnal_char_t peek(int i)
 {
-    if(m_index + i >= strlen(m_content))
+    if(m_index + i >= (int) strlen(m_content))
         return (optionnal_char_t) {.has_value = 0};
     else
         return (optionnal_char_t) {.value = m_content[m_index + i], .has_value = 1};

@@ -47,7 +47,7 @@ void* ll_get_tail(ll_t* l)
 
 void* ll_get_data_at(ll_t* l, int place)
 {
-    if(place >= l->count || place < 0)
+    if(place >= (int) l->count || place < 0)
         return NULL;
 
     ll_element* el = l->head;
@@ -59,7 +59,7 @@ void* ll_get_data_at(ll_t* l, int place)
 
 int ll_remove_at(ll_t* l, int place)
 {
-    if(place >= l->count || place < 0)
+    if(place >= (int) l->count || place < 0)
         return 1;
 
     ll_element* el = l->head;
@@ -71,7 +71,7 @@ int ll_remove_at(ll_t* l, int place)
         else
             l->head->prev = NULL;
     }
-    else if(place == l->count-1)
+    else if(place == (int) l->count-1)
     {
         el = l->tail;
         l->tail = l->tail->prev;
@@ -93,7 +93,7 @@ int ll_remove_at(ll_t* l, int place)
 
 int ll_insert_at(ll_t* l, void* data, int place)
 {
-    if(place >= l->count || place < 0)
+    if(place >= (int) l->count || place < 0)
         return 1;
 
     if(place == 0)
@@ -126,7 +126,7 @@ int ll_copy(ll_t* dest, ll_t* src)
     if(dest == NULL)
         return 1;
 
-    for(int i = 0; i < src->count; ++i)
+    for(int i = 0; i < (int) src->count; ++i)
     {
         ll_element* el = (ll_element*) malloc(sizeof(ll_element));
         if(el== NULL)

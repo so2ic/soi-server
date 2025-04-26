@@ -247,6 +247,7 @@ QUEUE_LIB void* queue_dequeue(queue_t* q)
 
     QUEUE_FREE(el);
     QUEUE_MUTEX_UNLOCK(q->mutex);
+    q->size--;
 
     return obj;
 }

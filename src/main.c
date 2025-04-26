@@ -150,6 +150,7 @@ int main(int argc, char** argv)
 
             thread_args* args = malloc(sizeof(thread_args));
             args->room = rooms[room_count];
+            args->queue = queue;
 
             threads_id = (pthread_t*) realloc(threads_id, room_count * sizeof(pthread_t));
 

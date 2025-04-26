@@ -11,6 +11,7 @@ void* client_handler(void* args)
 {
     thread_args* actual_args = args;
     room_t* room = actual_args->room;
+    queue_t* queue = actual_args->queue;
 
     player_t *players[PLAYER_COUNT] = {room->p1, room->p2};
     game_t* game = room->game;
@@ -55,7 +56,7 @@ void* client_handler(void* args)
             send(connfd, &send_packet, sizeof(meta_t), 0); 
             if(!recv_handler(connfd, &recv_packet, sizeof(meta_t), 0))
             {
-                handle_deconnection(room, connfd);
+                handle_deconnection(room, connfd, queue);
                 pthread_exit(NULL);
             }
 
@@ -78,10 +79,10 @@ void* client_handler(void* args)
         {
             player_t player = *(players[i]);
             int connfd = player.socket;
-            send_resource(connfd, player.hp, "hp", room);
-            send_resource(connfd, player.mastery, "mastery", room);
-            send_resource(connfd, player.mana, "mana", room);
-            send_resource(connfd, player.power, "power", room);
+            send_resource(connfd, player.hp, "hp", room, queue);
+            send_resource(connfd, player.mastery, "mastery", room, queue);
+            send_resource(connfd, player.mana, "mana", room, queue);
+            send_resource(connfd, player.power, "power", room, queue);
         }
     }
 
@@ -94,7 +95,7 @@ void* client_handler(void* args)
             for(int j = 0; j < ll_get_size(player.hand); ++j)
             {
                 card_t* card = (card_t*) ll_get_data_at(player.hand, j);
-                send_card(connfd, card, room);
+                send_card(connfd, card, room, queue);
             }
         }
     }
@@ -116,7 +117,7 @@ void* client_handler(void* args)
             send(actual_player, &send_packet, sizeof(meta_t), 0);
             if(!recv_handler(actual_player, &callback, sizeof(meta_t), 0))
             {
-                handle_deconnection(room, actual_player);
+                handle_deconnection(room, actual_player, queue);
                 pthread_exit(NULL);
             }
 
@@ -124,7 +125,7 @@ void* client_handler(void* args)
 
             if(!recv_handler(actual_player, &callback, sizeof(meta_t), 0))
             {
-                handle_deconnection(room, actual_player);
+                handle_deconnection(room, actual_player, queue);
                 pthread_exit(NULL);
             }
 
@@ -140,7 +141,7 @@ void* client_handler(void* args)
                 bzero(&callback, sizeof(meta_t));
                 if(!recv_handler(actual_player, &card_id, sizeof(int), 0))
                 {
-                    handle_deconnection(room, actual_player);
+                    handle_deconnection(room, actual_player, queue);
                     pthread_exit(NULL);
                 }
                 send(actual_player, &send_packet, sizeof(meta_t), 0);
@@ -163,7 +164,7 @@ void* client_handler(void* args)
                         send(actual_player, &send_packet, sizeof(meta_t), 0);
                         if(!recv_handler(actual_player, &callback, sizeof(meta_t), 0))
                         {
-                            handle_deconnection(room, actual_player);
+                            handle_deconnection(room, actual_player, queue);
                              pthread_exit(NULL);
                         }
                         if(!check_callback(&callback))
@@ -174,9 +175,9 @@ void* client_handler(void* args)
 
                         bzero(&callback, sizeof(meta_t));
                         if(gain == (EFFECT_GAIN) MANA)
-                            send_resource(actual_player, players[actual_player_place]->mana, "mana", room);
+                            send_resource(actual_player, players[actual_player_place]->mana, "mana", room, queue);
                         else if(gain == (EFFECT_GAIN) POWER)
-                            send_resource(actual_player, players[actual_player_place]->power, "power", room);
+                            send_resource(actual_player, players[actual_player_place]->power, "power", room, queue);
                         break;
                     } 
                 }
@@ -198,7 +199,7 @@ void* client_handler(void* args)
                     send(actual_player, &send_packet, sizeof(meta_t), 0);
                     if(!recv_handler(actual_player, &callback, sizeof(meta_t), 0))
                     {
-                        handle_deconnection(room, actual_player);
+                        handle_deconnection(room, actual_player, queue);
                          pthread_exit(NULL);
                     }
                     if(!check_callback(&callback))
@@ -227,7 +228,7 @@ void* client_handler(void* args)
                 for(int j = 0; j < ll_get_size(player->hand); ++j)
                 {
                     card_t* card = (card_t*) ll_get_data_at(player->hand, j);
-                    send_card(actual_player, card, room);
+                    send_card(actual_player, card, room, queue);
                 }
 
                 actual_player_place = actual_player_place == 0 ? 1 : 0;
@@ -247,8 +248,8 @@ void* client_handler(void* args)
                 {
                     players[actual_player_place]->mastery += 1;
                     players[actual_player_place]->mana -= 1; 
-                    send_resource(actual_player, players[actual_player_place]->mana, "mana", room);
-                    send_resource(actual_player, players[actual_player_place]->mastery, "mastery", room);
+                    send_resource(actual_player, players[actual_player_place]->mana, "mana", room, queue);
+                    send_resource(actual_player, players[actual_player_place]->mastery, "mastery", room, queue);
                 }
                 bzero(&callback, sizeof(meta_t));
             }
@@ -260,7 +261,7 @@ void* client_handler(void* args)
 
                 player_t* en = players[actual_player_place == 0 ? 1 : 0];
                 en->hp -= (int) callback.size;
-                send_resource(en->socket, en->hp, "hp", room);
+                send_resource(en->socket, en->hp, "hp", room, queue);
 
                 bzero(&callback, sizeof(meta_t));
             }
@@ -269,7 +270,8 @@ void* client_handler(void* args)
     }
 }
 
-void send_card(int connfd, card_t* card, room_t* room)
+// TODO : refactor so no queue in param
+void send_card(int connfd, card_t* card, room_t* room, queue_t* queue)
 {
     meta_t callback;
     meta_t send_packet = {.type = 0x03, .size = 0};
@@ -280,7 +282,7 @@ void send_card(int connfd, card_t* card, room_t* room)
     send(connfd, &send_packet, sizeof(meta_t), 0);
     if(!recv_handler(connfd, &callback, sizeof(meta_t), 0))
     {
-        handle_deconnection(room, connfd);
+        handle_deconnection(room, connfd, queue);
         pthread_exit(NULL);
     }
     if(!check_callback(&callback))
@@ -308,7 +310,7 @@ void send_card(int connfd, card_t* card, room_t* room)
     send(connfd, &send_packet, sizeof(meta_t), 0);
     if(!recv_handler(connfd, &callback, sizeof(meta_t), 0))
     {
-        handle_deconnection(room, connfd);
+        handle_deconnection(room, connfd, queue);
         pthread_exit(NULL);
     }
     if(!check_callback(&callback))
@@ -323,7 +325,7 @@ void send_card(int connfd, card_t* card, room_t* room)
     send(connfd, &send_packet, sizeof(meta_t), 0);
     if(!recv_handler(connfd, &callback, sizeof(meta_t), 0))
     {
-        handle_deconnection(room, connfd);
+        handle_deconnection(room, connfd, queue);
         pthread_exit(NULL);
     }
     if(!check_callback(&callback))
@@ -338,7 +340,7 @@ void send_card(int connfd, card_t* card, room_t* room)
     send(connfd, card->name, strlen(card->name) + 1, 0);
     if(!recv_handler(connfd, &callback, sizeof(meta_t), 0))
     {
-        handle_deconnection(room, connfd);
+        handle_deconnection(room, connfd, queue);
         pthread_exit(NULL);
     }
     if(!check_callback(&callback))
@@ -353,7 +355,8 @@ int check_callback(meta_t* callback)
     return (callback->type == 0xFF) ? 1 : 0;
 }
 
-void send_resource(int actual_player, int value, char* resource, room_t* room)
+// TODO : refactor so no queue in param
+void send_resource(int actual_player, int value, char* resource, room_t* room, queue_t* queue)
 {
     meta_t send_packet;
     meta_t callback;
@@ -377,7 +380,7 @@ void send_resource(int actual_player, int value, char* resource, room_t* room)
     send(actual_player, &send_packet, sizeof(meta_t), 0);
     if(!recv_handler(actual_player, &callback, sizeof(meta_t), 0))
     {
-        handle_deconnection(room, actual_player);
+        handle_deconnection(room, actual_player, queue);
         pthread_exit(NULL);
     }
     if(!check_callback(&callback))
@@ -407,13 +410,13 @@ int recv_handler(int connfd, void* buf, int len, int flags)
     return 1;
 }
 
-void handle_deconnection(room_t* room, int dfd)
+void handle_deconnection(room_t* room, int dfd, queue_t* queue)
 {
     // dfd -> client that disconnect
+    close(dfd);
 
-    // ask opponent to reset
-    {
-        meta_t p = {.type = 0x0F, .size = 0};
-        send(room->p1->socket == dfd ? room->p2->socket : room->p1->socket, &p, sizeof(meta_t), 0);
-    }
+    meta_t p = {.type = 0x0F, .size = 0};
+    send(room->p1->socket == dfd ? room->p2->socket : room->p1->socket, &p, sizeof(meta_t), 0);
+    queue_add(queue, room->p1->socket == dfd ? room->p2 : room->p1);
+    free(room->p1->socket == dfd ? room->p1 : room->p2);
 }
